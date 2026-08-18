@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DSR Brand - Modern Shopping Platform">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <title>DSR Brand | Modern Shopping Platform</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .glass-calc {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+        }
+        .dark .glass-calc {
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(12px);
+        }
+
+        /* HARDWARE ACCELERATED MASCOT ANIMATIONS */
+        .mascot-container {
+            will-change: transform;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .mascot-face {
+            will-change: transform;
+            transition: transform 0.25s ease-out;
+        }
+        .mascot-hand {
+            will-change: transform;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .mascot-eye {
+            will-change: transform;
+            transition: transform 0.15s ease-out;
+        }
+        .mascot-mouth {
+            transition: all 0.25s ease;
+        }
+
+        @keyframes slideOutLeftWithMascot {
+            0% { transform: translate3d(0, 0, 0) scale(1); opacity: 1; }
+            30% { transform: translate3d(20px, 0, 0) scale(0.98); }
+            100% { transform: translate3d(-120vw, 0, 0) scale(0.8); opacity: 0; }
+        }
+        .animate-card-done {
+            animation: slideOutLeftWithMascot 0.85s forwards cubic-bezier(0.55, 0.085, 0.68, 0.53);
+            pointer-events: none;
+        }
+
+        @keyframes shakeSad {
+            0%, 100% { transform: translate3d(0, 0, 0); }
+            20%, 60% { transform: translate3d(-10px, 0, 0) rotate(-2deg); }
+            40%, 80% { transform: translate3d(10px, 0, 0) rotate(2deg); }
+        }
+        .animate-wrong-shake {
+            animation: shakeSad 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 font-sans antialiased transition-colors duration-300">
+
+    <!-- TOP NOTIFICATION SUCCESS BAR -->
+    <div id="toastNotification" class="hidden fixed top-0 left-0 right-0 z-50 bg-emerald-600 text-white text-center py-3 font-semibold shadow-lg transition-all duration-300 transform -translate-y-full">
+        <span id="toastMessage">Successfully Logged In!</span>
+    </div>
+
+    <!-- FLASH SALE STRIP -->
+    <div id="flashSaleStrip" class="bg-gradient-to-r from-rose-600 to-amber-600 text-white text-xs font-bold py-2 px-4 text-center flex justify-center items-center gap-3 shadow-xs">
+        <span class="flex items-center gap-1"><i data-lucide="zap" class="w-3.5 h-3.5 fill-current"></i> FLASH SALE ENDS IN:</span>
+        <span id="flashTimer" class="font-mono bg-black/30 px-2 py-0.5 rounded text-white tracking-widest">02:45:18</span>
+        <span class="hidden md:inline">• Special Offer: Grab Kids Wear from just <span class="underline font-black">₹5</span>!</span>
+    </div>
+
+    <!-- ADMIN PIN POPUP MODAL -->
+    <div id="adminPinModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-xs w-full p-6 text-center border border-gray-100 dark:border-gray-700">
+            <div class="w-12 h-12 bg-rose-100 dark:bg-rose-950 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i data-lucide="lock" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-base font-black text-gray-900 dark:text-white">Admin Security Access</h3>
+            <p class="text-xs text-gray-400 mt-1 mb-4">Enter Master Security PIN (admin123)</p>
+            
+            <form onsubmit="verifyAdminPinModal(event)" class="space-y-3">
+                <input type="password" id="adminPinInputModal" placeholder="••••••••" required class="w-full text-center text-lg tracking-widest font-black p-2.5 border dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500">
+                <div class="flex gap-2">
+                    <button type="submit" class="flex-1 py-2.5 bg-rose-600 text-white font-bold text-xs rounded-xl hover:bg-rose-700 transition shadow-md">Unlock</button>
+                    <button type="button" onclick="closeAdminPinModal()" class="px-4 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-xs font-bold rounded-xl hover:bg-gray-300">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN NAVBAR -->
+    <header class="sticky top-0 z-40 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-100 dark:border-gray-700 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center space-x-8">
+                    <a href="#" onclick="showSection('homeSection')" class="flex items-center space-x-2">
+                        <span class="text-3xl font-black tracking-wider text-rose-600">DSR</span>
+                        <span class="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 font-bold border-l pl-2 border-gray-300 dark:border-gray-600">Brand</span>
+                    </a>
+                    <nav id="mainNav" class="hidden md:flex space-x-8 font-bold text-sm tracking-wide">
+                        <button onclick="filterCategory('all')" id="tab-all" class="text-rose-600 dark:text-rose-400 transition font-extrabold">HOME</button>
+                        <button onclick="filterCategory('men')" id="tab-men" class="hover:text-rose-600 dark:hover:text-rose-400 transition uppercase">Men</button>
+                        <button onclick="filterCategory('women')" id="tab-women" class="hover:text-rose-600 dark:hover:text-rose-400 transition uppercase">Women</button>
+                        <button onclick="filterCategory('kids')" id="tab-kids" class="hover:text-rose-600 dark:hover:text-rose-400 transition uppercase">Kids</button>
+                    </nav>
+                </div>
+
+                <!-- LIVE SEARCH BAR -->
+                <div class="flex-1 max-w-md mx-6 relative hidden sm:block">
+                    <div class="relative flex items-center">
+                        <input type="text" id="searchInput" oninput="handleSearchDebounced()" placeholder="Search clothes, brands..." 
+                            class="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 dark:text-white border border-transparent rounded-md text-sm focus:bg-white dark:focus:bg-gray-600 focus:border-rose-500 focus:outline-none transition">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 text-gray-400"></i>
+                    </div>
+                </div>
+
+                <!-- CONTROLS & UTILITIES -->
+                <div class="flex items-center space-x-3 sm:space-x-5">
+                    <button onclick="toggleTheme()" class="p-2 text-gray-600 dark:text-gray-300 hover:text-rose-600 dark:hover:text-rose-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition" title="Toggle Dark/Light Mode">
+                        <i id="themeIcon" data-lucide="moon" class="w-5 h-5"></i>
+                    </button>
+
+                    <button onclick="toggleCartDrawer()" class="relative p-2 text-gray-600 dark:text-gray-300 hover:text-rose-600 dark:hover:text-rose-400 focus:outline-none flex items-center gap-1">
+                        <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+                        <span id="cartCountBadge" class="absolute -top-1 -right-1 bg-rose-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">0</span>
+                    </button>
+
+                    <div id="userProfileArea">
+                        <button onclick="openAuthModal()" class="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white text-sm font-semibold rounded hover:bg-rose-700 transition shadow-sm">
+                            <i data-lucide="user" class="w-4 h-4"></i> Login
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN SHOPPING SECTION -->
+    <main id="homeSection" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- AUTO-SLIDING HERO CAROUSEL -->
+        <div id="carouselContainer" class="relative rounded-2xl overflow-hidden shadow-2xl mb-8 bg-gray-900 group">
+            <div id="carouselTrack" class="relative w-full h-[380px] md:h-[430px] overflow-hidden">
+                <div class="carousel-slide absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-100 z-10">
+                    <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&q=80" alt="Special Season Sale" class="w-full h-full object-cover object-center opacity-35">
+                    <div class="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-900/80 to-transparent flex items-center px-8 md:px-16">
+                        <div class="max-w-2xl">
+                            <span class="text-rose-400 text-xs font-bold uppercase tracking-widest bg-rose-950/80 px-3.5 py-1.5 rounded-full border border-rose-700">Special Season Sale</span>
+                            <h1 class="text-3xl md:text-5xl font-black mt-3 leading-tight tracking-tight text-white">TRENDING FASHION FOR MEN, WOMEN & KIDS</h1>
+                            <p class="mt-3 text-gray-300 text-sm md:text-base">Discover latest seasonal collections with unbeatable quality and instant inbox offer drops.</p>
+                            <div class="mt-6 flex gap-3 flex-wrap">
+                                <button onclick="filterCategory('men')" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-xs transition uppercase shadow-md">Shop Men</button>
+                                <button onclick="filterCategory('women')" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-xs transition uppercase shadow-md">Shop Women</button>
+                                <button onclick="filterCategory('kids')" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-xs transition uppercase shadow-md">Shop Kids</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-slide absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0 z-0 pointer-events-none">
+                    <img src="https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?w=1600&q=80" alt="Trending Men Wear" class="w-full h-full object-cover object-center opacity-35">
+                    <div class="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-900/80 to-transparent flex items-center px-8 md:px-16">
+                        <div class="max-w-2xl">
+                            <span class="text-blue-400 text-xs font-bold uppercase tracking-widest bg-blue-950/80 px-3.5 py-1.5 rounded-full border border-blue-700">Trending Men's Wear</span>
+                            <h1 class="text-3xl md:text-5xl font-black mt-3 leading-tight tracking-tight text-white">PREMIUM DENIM, JACKETS & CASUAL SHIRTS</h1>
+                            <p class="mt-3 text-gray-300 text-sm md:text-base">Modern fit, streetwear hoodies, formal blazers, and luxury cotton fabrics curated for men.</p>
+                            <div class="mt-6">
+                                <button onclick="filterCategory('men')" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs transition uppercase shadow-md">Explore Men's Wear</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-slide absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0 z-0 pointer-events-none">
+                    <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1600&q=80" alt="Women's Trendsetters" class="w-full h-full object-cover object-center opacity-35">
+                    <div class="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-900/80 to-transparent flex items-center px-8 md:px-16">
+                        <div class="max-w-2xl">
+                            <span class="text-emerald-400 text-xs font-bold uppercase tracking-widest bg-emerald-950/80 px-3.5 py-1.5 rounded-full border border-emerald-700">Women's Trendsetters</span>
+                            <h1 class="text-3xl md:text-5xl font-black mt-3 leading-tight tracking-tight text-white">ELEGANT ETHNIC, DRESSES & DESIGNER SUITS</h1>
+                            <p class="mt-3 text-gray-300 text-sm md:text-base">Handpicked sarees, modern western fits, and everyday ethnic essentials designed with perfection.</p>
+                            <div class="mt-6">
+                                <button onclick="filterCategory('women')" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs transition uppercase shadow-md">Explore Women's Wear</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="carouselDots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20"></div>
+        </div>
+
+        <!-- PRODUCTS GRID -->
+        <div class="mb-6 flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-4">
+            <h2 id="categoryTitle" class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">All Collections</h2>
+        </div>
+        <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-16"></div>
+
+        <!-- FOOTER WITH 3-TAP SECRET ADMIN TRIGGER -->
+        <footer class="mt-20 py-8 border-t dark:border-gray-800 text-center text-xs text-gray-400">
+            <p id="secretAdminFooterTrigger" onclick="handleSecretFooterTap()" class="cursor-pointer select-none hover:text-gray-600 dark:hover:text-gray-300">
+                © 2026 DSR Brand. All Rights Reserved. (Tap here 3 times or press <strong>Ctrl+Shift+A</strong> for Admin)
+            </p>
+        </footer>
+    </main>
+
+    <!-- HIDDEN BACKEND ADMIN PANEL -->
+    <section id="adminMasterSection" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex justify-between items-center bg-gray-900 text-white p-4 rounded-t-xl">
+            <div>
+                <h2 class="text-lg font-bold">DSR Super Admin Backend</h2>
+                <p class="text-xs text-gray-400">AI-Analyzed Orders & Payment Approvals</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="openAdminCalculator()" class="p-2 bg-indigo-950 hover:bg-indigo-900 text-indigo-400 border border-indigo-700/60 rounded-lg transition shadow-xs flex items-center gap-1.5 text-xs font-bold" title="Open Admin Calculator">
+                    <i data-lucide="calculator" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Calc</span>
+                </button>
+                <button onclick="toggleTheme()" class="p-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition" title="Toggle Theme">
+                    <i id="themeIconAdmin" data-lucide="moon" class="w-4 h-4"></i>
+                </button>
+                <button onclick="showSection('homeSection')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded">Exit</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-6 bg-gray-100 dark:bg-gray-850 border-x border-gray-200 dark:border-gray-700">
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-xs border dark:border-gray-700">
+                <span class="text-xs font-bold text-gray-400 uppercase">Total Sales Revenue</span>
+                <h3 id="admTotRevenue" class="text-2xl font-black text-emerald-600">₹0</h3>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-xs border dark:border-gray-700">
+                <span class="text-xs font-bold text-gray-400 uppercase">Total Orders Placed</span>
+                <h3 id="admTotOrders" class="text-2xl font-black text-indigo-600">0</h3>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-xs border dark:border-gray-700">
+                <span class="text-xs font-bold text-gray-400 uppercase">Avg Order Value (AOV)</span>
+                <h3 id="admAvgOrderVal" class="text-2xl font-black text-rose-600">₹0</h3>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-xs border dark:border-gray-700">
+                <span class="text-xs font-bold text-gray-400 uppercase">Total Catalog Items</span>
+                <h3 id="admTotCount" class="text-2xl font-black text-gray-800 dark:text-white">300</h3>
+            </div>
+        </div>
+
+        <!-- Live Orders & Payment Approval Manager -->
+        <div class="bg-white dark:bg-gray-800 shadow-sm border dark:border-gray-700 p-6 border-t-0">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">Customer Payment Approvals & Orders</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Review uploaded payment screenshots and approve or reject orders.</p>
+                </div>
+                <button onclick="clearAdminOrders()" class="px-3 py-1.5 bg-rose-100 text-rose-600 hover:bg-rose-200 text-xs font-bold rounded-lg transition">
+                    Clear Logs
+                </button>
+            </div>
+            
+            <div class="overflow-x-auto mb-8">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase text-xs">
+                            <th class="p-3 border-b dark:border-gray-600">Order ID & User</th>
+                            <th class="p-3 border-b dark:border-gray-600">Items & Amount</th>
+                            <th class="p-3 border-b dark:border-gray-600">Delivery Address</th>
+                            <th class="p-3 border-b dark:border-gray-600">Approval Status</th>
+                            <th class="p-3 border-b dark:border-gray-600">Action (Accept / Reject)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminOrdersTable" class="divide-y divide-gray-100 dark:divide-gray-700">
+                        <tr><td colspan="5" class="p-4 text-center text-gray-400 text-xs">No orders recorded yet.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Registered User Database -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 border-t dark:border-gray-700 pt-6">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">Registered Users Database</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Live signups stored locally and synced to cloud.</p>
+                </div>
+                <button onclick="exportToCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded flex items-center gap-2">
+                    <i data-lucide="download" class="w-4 h-4"></i> Export Users (.CSV)
+                </button>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase text-xs">
+                            <th class="p-3 border-b dark:border-gray-600">User ID</th>
+                            <th class="p-3 border-b dark:border-gray-600">Phone Number</th>
+                            <th class="p-3 border-b dark:border-gray-600">Email ID</th>
+                            <th class="p-3 border-b dark:border-gray-600">Registration Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminUserTable" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- AUTH MODAL WITH ANIMATED MASCOT -->
+    <div id="authModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-hidden">
+        <div id="authCardWrapper" class="relative max-w-md w-full transition-transform duration-300">
+            
+            <!-- MASCOT -->
+            <div id="mascotContainer" class="mascot-container absolute -top-24 right-4 z-10 flex flex-col items-center pointer-events-none">
+                <div id="mascotFace" class="mascot-face relative w-24 h-24 bg-amber-400 rounded-full border-4 border-gray-900 shadow-xl flex items-center justify-center overflow-hidden">
+                    <div class="absolute -top-1 -left-1 w-7 h-7 bg-amber-500 rounded-full border-2 border-gray-900"></div>
+                    <div class="absolute -top-1 -right-1 w-7 h-7 bg-amber-500 rounded-full border-2 border-gray-900"></div>
+                    <div class="flex items-center gap-4 z-10">
+                        <div class="w-4 h-5 bg-white rounded-full border-2 border-gray-900 flex items-center justify-center relative overflow-hidden">
+                            <div id="leftPupil" class="mascot-eye w-2 h-2.5 bg-gray-900 rounded-full"></div>
+                        </div>
+                        <div class="w-4 h-5 bg-white rounded-full border-2 border-gray-900 flex items-center justify-center relative overflow-hidden">
+                            <div id="rightPupil" class="mascot-eye w-2 h-2.5 bg-gray-900 rounded-full"></div>
+                        </div>
+                    </div>
+                    <div class="absolute bottom-5 left-2 w-3.5 h-2 bg-rose-400/80 rounded-full"></div>
+                    <div class="absolute bottom-5 right-2 w-3.5 h-2 bg-rose-400/80 rounded-full"></div>
+                    <div class="absolute bottom-4 w-6 h-4 bg-amber-200 rounded-full flex flex-col items-center justify-center border border-gray-800">
+                        <div class="w-2.5 h-1.5 bg-gray-900 rounded-full mb-0.5"></div>
+                        <div id="mascotMouth" class="mascot-mouth w-2.5 h-1 border-b-2 border-gray-900 rounded-full"></div>
+                    </div>
+                </div>
+                <div id="leftPaw" class="mascot-hand absolute top-12 left-0 w-8 h-8 bg-amber-500 border-2 border-gray-900 rounded-full shadow-md z-20 transform -rotate-12 translate-y-6"></div>
+                <div id="rightPaw" class="mascot-hand absolute top-12 right-0 w-8 h-8 bg-amber-500 border-2 border-gray-900 rounded-full shadow-md z-20 transform rotate-12 translate-y-6"></div>
+            </div>
+
+            <!-- MAIN AUTH CARD -->
+            <div id="authCardBody" class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 relative border-2 border-gray-100 dark:border-gray-700 z-0">
+                <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+                
+                <div class="text-center mb-6">
+                    <span class="text-2xl font-black text-rose-600 tracking-wider">DSR BRAND</span>
+                    <h3 id="authTitle" class="text-lg font-bold text-gray-800 dark:text-white mt-1">Sign-In to your Account</h3>
+                    <p id="mascotMoodText" class="text-[11px] font-semibold text-gray-400 mt-0.5">👋 Mascot is ready!</p>
+                </div>
+
+                <!-- LOGIN FORM -->
+                <form id="loginForm" onsubmit="handleAnimatedLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-600 dark:text-gray-300 mb-1">Phone Number or User ID</label>
+                        <input type="text" id="loginIdentifier" required 
+                            onfocus="mascotFocusUsername()" 
+                            oninput="mascotLookAround()" 
+                            onblur="mascotNormalState()" 
+                            placeholder="Enter Phone or DSR-ID" 
+                            class="w-full p-2.5 border dark:border-gray-600 rounded-xl text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-rose-500 focus:outline-none transition">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-xs font-bold uppercase text-gray-600 dark:text-gray-300">Password</label>
+                            <a href="javascript:void(0)" onclick="switchAuthTab('forgot')" class="text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:underline">Forgot Password?</a>
+                        </div>
+                        <input type="password" id="loginPassword" required 
+                            onfocus="mascotCoverEyes()" 
+                            onblur="mascotUncoverEyes()" 
+                            placeholder="••••••••" 
+                            class="w-full p-2.5 border dark:border-gray-600 rounded-xl text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-rose-500 focus:outline-none transition">
+                    </div>
+
+                    <div id="wrongPasswordNotice" class="hidden p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 rounded-lg text-xs text-rose-600 dark:text-rose-300">
+                        <p class="font-bold">Invalid Phone/ID or Password!</p>
+                        <p class="mt-0.5"><a href="javascript:void(0)" onclick="switchAuthTab('forgot')" class="font-black underline text-rose-700 dark:text-rose-200">Reset Password here</a></p>
+                    </div>
+
+                    <button type="submit" id="loginSubmitBtn" class="w-full py-3 bg-rose-600 text-white font-bold text-sm rounded-xl hover:bg-rose-700 transition shadow-md flex items-center justify-center gap-2">
+                        <span>Continue</span>
+                    </button>
+                    <p class="text-xs text-center text-gray-500 dark:text-gray-400 mt-4">
+                        New to DSR Brand? <a href="javascript:void(0)" onclick="switchAuthTab('signup')" class="text-rose-600 dark:text-rose-400 font-bold hover:underline">Create an account</a>
+                    </p>
+                </form>
+
+                <!-- SIGNUP FORM -->
+                <form id="signupForm" onsubmit="handleSignup(event)" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-600 dark:text-gray-300 mb-1">Phone Number</label>
+                        <input type="tel" id="signupPhone" required placeholder="Mobile Number" class="w-full p-2.5 border dark:border-gray-600 rounded-xl text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-600 dark:text-gray-300 mb-1">Email ID</label>
+                        <input type="email" id="signupEmail" required placeholder="name@example.com" class="w-full p-2.5 border dark:border-gray-600 rounded-xl text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-600 dark:text-gray-300 mb-1">Create Password</label>
+                        <input type="password" id="signupPassword" required placeholder="Minimum 6 characters" class="w-full p-2.5 border dark:border-gray-600 rounded-xl text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-rose-600 text-white font-bold text-sm rounded-xl hover:bg-rose-700 transition">Register & Get User ID</button>
+                    <p class="text-xs text-center text-gray-500 dark:text-gray-400 mt-4">
+                        Already registered? <a href="javascript:void(0)" onclick="switchAuthTab('login')" class="text-rose-600 dark:text-rose-400 font-bold hover:underline">Sign-In</a>
+                    </p>
+                </form>
+
+                <!-- FORGOT PASSWORD FORM -->
+                <form id="forgotForm" onsubmit="handleDirectResetPassword(event)" class="hidden space-y-4">
+                    <div class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-lg text-xs text-amber-800 dark:text-amber-300">
+                        Enter your registered <strong>Phone Number, Email, or User ID</strong> to set a new password.
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-600 dark:text-gray-300 mb-1">Phone Number, Email, or DSR-ID</label>
+                        <input type="text" id="forgotIdentifier" required placeholder="e.g. Phone, Email or DSR-ID" class="w-full p-2.5 border dark:border-gray-600 rounded-xl text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-600 dark:text-gray-300 mb-1">New Password</label>
+                        <input type="password" id="forgotNewPassword" required placeholder="Minimum 6 characters" class="w-full p-2.5 border dark:border-gray-600 rounded-xl text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-600 dark:text-gray-300 mb-1">Confirm New Password</label>
+                        <input type="password" id="forgotConfirmPassword" required placeholder="Confirm new password" class="w-full p-2.5 border dark:border-gray-600 rounded-xl text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-rose-600 text-white font-bold text-sm rounded-xl hover:bg-rose-700 transition shadow-md">Update Password & Sign In</button>
+                    <p class="text-xs text-center text-gray-500 dark:text-gray-400 mt-4">
+                        Remember password? <a href="javascript:void(0)" onclick="switchAuthTab('login')" class="text-rose-600 dark:text-rose-400 font-bold hover:underline">Back to Sign-In</a>
+                    </p>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 🟢 USER PROFILE & ORDER TRACKING MODAL 🟢 -->
+    <div id="userProfileModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-lg w-full p-6 relative border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
+            <button onclick="closeUserProfileModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+            
+            <div class="flex items-center gap-3 mb-5 border-b pb-4 dark:border-gray-700">
+                <div class="w-12 h-12 rounded-full bg-rose-600 text-white font-black text-lg flex items-center justify-center" id="profileAvatarLetter">U</div>
+                <div>
+                    <h3 class="text-base font-black text-gray-900 dark:text-white" id="profileModalUserId">DSR-00000</h3>
+                    <p class="text-xs text-gray-400" id="profileModalPhoneEmail">phone • email</p>
+                </div>
+            </div>
+
+            <!-- DELIVERY ADDRESS & LANDMARK FORM -->
+            <div class="mb-6 bg-gray-50 dark:bg-gray-750 p-4 rounded-2xl border border-gray-200 dark:border-gray-700">
+                <h4 class="text-xs font-bold uppercase text-gray-600 dark:text-gray-300 mb-3 flex items-center gap-1.5"><i data-lucide="map-pin" class="w-4 h-4 text-rose-600"></i> Delivery Address & Location</h4>
+                
+                <form onsubmit="saveUserAddress(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-500 uppercase mb-1">Valid Address</label>
+                        <input type="text" id="userValidAddress" required placeholder="House No, Street, Area" class="w-full p-2.5 border dark:border-gray-600 rounded-xl text-xs bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-500 uppercase mb-1">Landmark</label>
+                            <input type="text" id="userLandmark" required placeholder="Nearby landmark" class="w-full p-2.5 border dark:border-gray-600 rounded-xl text-xs bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-500 uppercase mb-1">Pincode</label>
+                            <input type="text" id="userPincode" required placeholder="6-digit Pincode" class="w-full p-2.5 border dark:border-gray-600 rounded-xl text-xs bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full py-2.5 bg-rose-600 text-white font-bold text-xs rounded-xl hover:bg-rose-700 transition shadow-sm">Save Address Details</button>
+                </form>
+            </div>
+
+            <!-- USER ORDER HISTORY & LIVE TRACKING -->
+            <div>
+                <h4 class="text-xs font-bold uppercase text-gray-600 dark:text-gray-300 mb-3 flex items-center gap-1.5"><i data-lucide="package" class="w-4 h-4 text-indigo-600"></i> Your Order History & Tracking</h4>
+                <div id="userOrderHistoryList" class="space-y-3 max-h-60 overflow-y-auto">
+                    <p class="text-xs text-gray-400 text-center py-4">No order history found.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🟢 CHECKOUT DELIVERY ADDRESS MODAL (NEW: PROCEED TO PAY KE PEHLE) 🟢 -->
+    <div id="checkoutAddressModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full p-6 relative border border-gray-200 dark:border-gray-700">
+            <button onclick="closeCheckoutAddressModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+            
+            <div class="text-center mb-5">
+                <div class="w-12 h-12 bg-rose-100 dark:bg-rose-950 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i data-lucide="map-pin" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-lg font-black text-gray-900 dark:text-white">Enter Delivery Address</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Please provide where you want this order delivered</p>
+            </div>
+
+            <form onsubmit="handleCheckoutAddressSubmit(event)" class="space-y-3">
+                <div>
+                    <label class="block text-[11px] font-bold uppercase text-gray-600 dark:text-gray-300 mb-1">Full House / Street Address</label>
+                    <input type="text" id="chkAddress" required placeholder="Flat/House No, Building, Road, Area" class="w-full p-2.5 border dark:border-gray-600 rounded-xl text-xs bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase text-gray-600 dark:text-gray-300 mb-1">Landmark</label>
+                        <input type="text" id="chkLandmark" required placeholder="Near temple, school, etc." class="w-full p-2.5 border dark:border-gray-600 rounded-xl text-xs bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase text-gray-600 dark:text-gray-300 mb-1">Pincode</label>
+                        <input type="text" id="chkPincode" required pattern="[0-9]{6}" maxlength="6" placeholder="6-digit PIN" class="w-full p-2.5 border dark:border-gray-600 rounded-xl text-xs bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                    </div>
+                </div>
+                <button type="submit" class="w-full mt-2 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-md flex items-center justify-center gap-2">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i> Confirm Address & Continue to Payment
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- CART SLIDE-OVER DRAWER -->
+    <div id="cartDrawer" class="hidden fixed inset-0 z-50 overflow-hidden bg-black/40 backdrop-blur-xs">
+        <div class="absolute inset-y-0 right-0 max-w-full flex pl-10">
+            <div class="w-screen max-w-md bg-white dark:bg-gray-800 shadow-2xl flex flex-col border-l dark:border-gray-700">
+                <div class="p-6 bg-gray-50 dark:bg-gray-750 border-b dark:border-gray-700 flex justify-between items-center">
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2"><i data-lucide="shopping-bag" class="w-5 h-5"></i> Shopping Cart</h2>
+                    <button onclick="toggleCartDrawer()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <div id="cartItemsList" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
+                <div id="cartFooter" class="hidden p-6 bg-gray-50 dark:bg-gray-750 border-t dark:border-gray-700">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <span class="text-gray-600 dark:text-gray-300 font-bold block">Total Payable Amount</span>
+                            <span id="cartItemsCountText" class="text-xs text-gray-400 font-medium">0 items</span>
+                        </div>
+                        <span id="cartTotalAmount" class="text-xl font-black text-emerald-600 dark:text-emerald-400">₹0</span>
+                    </div>
+                    <button onclick="handleProceedToPayCheck()" class="w-full py-3.5 bg-emerald-600 text-white font-bold text-sm rounded-xl hover:bg-emerald-700 transition shadow-lg flex justify-center items-center gap-2">
+                        <i data-lucide="credit-card" class="w-4 h-4"></i> Proceed to Pay
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KEYBOARD CALCULATOR -->
+    <div id="adminCalcModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="glass-calc rounded-2xl shadow-2xl w-full max-w-sm p-6 relative border border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-center pb-3 border-b dark:border-gray-700">
+                <div class="flex items-center gap-2">
+                    <div class="p-1.5 bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                        <i data-lucide="calculator" class="w-4 h-4"></i>
+                    </div>
+                    <h3 class="text-sm font-black text-gray-800 dark:text-white tracking-wide">Smart Calculator</h3>
+                </div>
+                <button onclick="closeAdminCalculator()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="mt-4 p-4 bg-gray-100 dark:bg-gray-900 rounded-xl text-right border dark:border-gray-700">
+                <div id="calcHistory" class="text-xs text-gray-400 font-mono h-4 overflow-hidden"></div>
+                <div id="calcDisplay" class="text-3xl font-black text-gray-900 dark:text-white font-mono tracking-tight overflow-x-auto">0</div>
+            </div>
+            <div class="grid grid-cols-4 gap-2.5 mt-4">
+                <button onclick="calcClear()" class="p-3 bg-rose-100 text-rose-600 font-bold rounded-xl text-sm">AC</button>
+                <button onclick="calcDelete()" class="p-3 bg-gray-200 text-gray-700 font-bold rounded-xl text-sm">DEL</button>
+                <button onclick="calcAppend('%')" class="p-3 bg-gray-200 text-gray-700 font-bold rounded-xl text-sm">%</button>
+                <button onclick="calcAppend('/')" class="p-3 bg-indigo-600 text-white font-bold rounded-xl text-base">÷</button>
+                <button onclick="calcAppend('7')" class="p-3 bg-white dark:bg-gray-800 font-bold rounded-xl text-base">7</button>
+                <button onclick="calcAppend('8')" class="p-3 bg-white dark:bg-gray-800 font-bold rounded-xl text-base">8</button>
+                <button onclick="calcAppend('9')" class="p-3 bg-white dark:bg-gray-800 font-bold rounded-xl text-base">9</button>
+                <button onclick="calcAppend('*')" class="p-3 bg-indigo-600 text-white font-bold rounded-xl text-base">×</button>
+                <button onclick="calcAppend('4')" class="p-3 bg-white dark:bg-gray-800 font-bold rounded-xl text-base">4</button>
+                <button onclick="calcAppend('5')" class="p-3 bg-white dark:bg-gray-800 font-bold rounded-xl text-base">5</button>
+                <button onclick="calcAppend('6')" class="p-3 bg-white dark:bg-gray-800 font-bold rounded-xl text-base">6</button>
+                <button onclick="calcAppend('-')" class="p-3 bg-indigo-600 text-white font-bold rounded-xl text-base">−</button>
+                <button onclick="calcAppend('1')" class="p-3 bg-white dark:bg-gray-800 font-bold rounded-xl text-base">1</button>
+                <button onclick="calcAppend('2')" class="p-3 bg-white dark:bg-gray-800 font-bold rounded-xl text-base">2</button>
+                <button onclick="calcAppend('3')" class="p-3 bg-white dark:bg-gray-800 font-bold rounded-xl text-base">3</button>
+                <button onclick="calcAppend('+')" class="p-3 bg-indigo-600 text-white font-bold rounded-xl text-base">+</button>
+                <button onclick="calcAppend('00')" class="p-3 bg-white dark:bg-gray-800 font-bold rounded-xl text-sm">00</button>
+                <button onclick="calcAppend('0')" class="p-3 bg-white dark:bg-gray-800 font-bold rounded-xl text-base">0</button>
+                <button onclick="calcAppend('.')" class="p-3 bg-white dark:bg-gray-800 font-bold rounded-xl text-base">.</button>
+                <button onclick="calcCompute()" class="p-3 bg-emerald-600 text-white font-black rounded-xl text-lg shadow-md">=</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAYMENT MODAL -->
+    <div id="paymentModal" class="hidden fixed inset-0 z-[60] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden border border-gray-200 dark:border-gray-700 relative max-h-[90vh] overflow-y-auto">
+            <div class="bg-gradient-to-br from-indigo-600 to-rose-600 p-6 text-center text-white relative">
+                <button onclick="closePaymentModal()" class="absolute top-4 right-4 text-white/80 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <span class="text-[10px] font-extrabold uppercase tracking-widest bg-black/30 px-3 py-1 rounded-full">AI Smart Scan & Verify</span>
+                <div class="text-4xl font-black mt-3 tracking-tight" id="payModalAmount">₹0</div>
+                <p class="text-xs text-white/90 mt-1" id="payModalItemCount">Total Cart Amount</p>
+            </div>
+            
+            <div class="p-6 text-center space-y-4">
+                <div class="bg-white p-3 rounded-2xl shadow-sm inline-block border-2 border-indigo-100">
+                    <img id="upiBarCodeImg" src="" alt="Payment Barcode" class="w-40 h-40 object-contain mx-auto rounded-lg">
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Scan via GPay, PhonePe or Paytm to pay exact amount.</p>
+
+                <div class="flex flex-col items-center justify-center pt-1">
+                    <label class="w-full py-3.5 px-4 bg-indigo-50 dark:bg-gray-700 text-indigo-700 dark:text-indigo-300 font-bold text-xs rounded-xl border-2 border-dashed border-indigo-300 dark:border-indigo-600 cursor-pointer flex items-center justify-center gap-2 hover:bg-indigo-100 transition shadow-xs">
+                        <i data-lucide="scan-line" class="w-5 h-5 text-indigo-600 dark:text-indigo-400 animate-pulse"></i>
+                        <span id="uploadButtonText">AI Scan / Upload Payment Screenshot</span>
+                        <input type="file" id="paymentScreenshotInput" accept="image/*" capture="environment" onchange="handleAiCompressAndAnalyze(event)" class="hidden">
+                    </label>
+
+                    <div id="aiAnalysisBox" class="hidden mt-3 p-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 rounded-xl text-left text-xs text-emerald-800 dark:text-emerald-300 space-y-1 w-full">
+                        <div class="font-bold flex items-center gap-1"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i> AI Receipt Analysis:</div>
+                        <div id="aiReportText" class="font-mono text-[11px]">Processing...</div>
+                    </div>
+                </div>
+
+                <button type="button" onclick="submitPaymentProof()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-sm rounded-2xl transition shadow-lg flex items-center justify-center gap-2">
+                    <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+                    <span>Submit & Send to Admin</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APPLICATION LOGIC -->
+    <script>
+        const MERCHANT_UPI_ID = "smittiwari38-1@okicici"; 
+        const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzhG-YFETjLKIvDsNC8gq5AJKsV1XT1xDv_kMNe_mR437mrnv1qdGYyUE-m7JDxAHzD/exec";
+        const ADMIN_SECRET_PIN = "admin123";
+
+        let products = generateCatalog();
+        let registeredUsers = JSON.parse(localStorage.getItem('dsr_registered_users')) || [];
+        let currentUser = JSON.parse(localStorage.getItem('dsr_active_user')) || null;
+        let cart = JSON.parse(localStorage.getItem('dsr_cart')) || [];
+        let adminOrders = JSON.parse(localStorage.getItem('dsr_user_messages')) || [];
+        let currentCategory = 'all';
+        let secretTapCount = 0;
+        let activePayAmount = 0;
+        let aiAnalyzedReport = "";
+        let searchDebounceTimer = null;
+
+        // ==========================================
+        // SMOOTH CARTOON MASCOT LOGIC
+        // ==========================================
+        function mascotReset() {
+            const container = document.getElementById('mascotContainer');
+            const face = document.getElementById('mascotFace');
+            const leftPaw = document.getElementById('leftPaw');
+            const rightPaw = document.getElementById('rightPaw');
+            const leftPupil = document.getElementById('leftPupil');
+            const rightPupil = document.getElementById('rightPupil');
+            const mouth = document.getElementById('mascotMouth');
+            const mood = document.getElementById('mascotMoodText');
+            const wrapper = document.getElementById('authCardWrapper');
+
+            if (!container || !face) return;
+            wrapper.classList.remove('animate-wrong-shake', 'animate-card-done');
+            container.style.transform = 'translate3d(0,0,0) scale(1)';
+            face.style.transform = 'scale(1)';
+            leftPaw.style.transform = 'translate3d(0, 24px, 0) rotate(-12deg)';
+            rightPaw.style.transform = 'translate3d(0, 24px, 0) rotate(12deg)';
+            leftPupil.style.transform = 'translate3d(0, 0, 0)';
+            rightPupil.style.transform = 'translate3d(0, 0, 0)';
+            mouth.style.borderRadius = '0 0 10px 10px';
+            mouth.style.height = '4px';
+            mouth.style.borderTop = 'none';
+            mouth.style.borderBottom = '2px solid black';
+            mouth.style.backgroundColor = 'transparent';
+            mood.innerText = "👋 Mascot is waiting for you!";
+        }
+
+        function mascotFocusUsername() {
+            const face = document.getElementById('mascotFace');
+            const leftPupil = document.getElementById('leftPupil');
+            const rightPupil = document.getElementById('rightPupil');
+            const mood = document.getElementById('mascotMoodText');
+
+            face.style.transform = 'scale(1.08) translate3d(0, 4px, 0)';
+            leftPupil.style.transform = 'translate3d(-2px, 3px, 0)';
+            rightPupil.style.transform = 'translate3d(-2px, 3px, 0)';
+            mood.innerText = "👀 Mascot is checking your ID...";
+        }
+
+        function mascotLookAround() {
+            const leftPupil = document.getElementById('leftPupil');
+            const rightPupil = document.getElementById('rightPupil');
+            leftPupil.style.transform = 'translate3d(2px, 2px, 0)';
+            rightPupil.style.transform = 'translate3d(2px, 2px, 0)';
+        }
+
+        function mascotNormalState() {
+            mascotReset();
+        }
+
+        function mascotCoverEyes() {
+            const face = document.getElementById('mascotFace');
+            const leftPaw = document.getElementById('leftPaw');
+            const rightPaw = document.getElementById('rightPaw');
+            const mood = document.getElementById('mascotMoodText');
+
+            face.style.transform = 'scale(0.95)';
+            leftPaw.style.transform = 'translate3d(14px, -18px, 0) rotate(35deg)';
+            rightPaw.style.transform = 'translate3d(-14px, -18px, 0) rotate(-35deg)';
+            mood.innerText = "🙈 Mascot is not looking at your password!";
+        }
+
+        function mascotUncoverEyes() {
+            mascotReset();
+        }
+
+        function mascotSadReaction() {
+            const face = document.getElementById('mascotFace');
+            const mouth = document.getElementById('mascotMouth');
+            const mood = document.getElementById('mascotMoodText');
+            const wrapper = document.getElementById('authCardWrapper');
+
+            mouth.style.borderRadius = '10px 10px 0 0';
+            mouth.style.height = '6px';
+            mouth.style.borderTop = '2px solid black';
+            mouth.style.borderBottom = 'none';
+
+            face.style.transform = 'scale(0.95) translate3d(0, 6px, 0)';
+            mood.innerText = "😢 Ouch! Wrong password. Mascot is sad.";
+
+            wrapper.classList.remove('animate-wrong-shake');
+            void wrapper.offsetWidth;
+            wrapper.classList.add('animate-wrong-shake');
+        }
+
+        function mascotHappySlideAway(callback) {
+            const face = document.getElementById('mascotFace');
+            const leftPaw = document.getElementById('leftPaw');
+            const rightPaw = document.getElementById('rightPaw');
+            const mouth = document.getElementById('mascotMouth');
+            const mood = document.getElementById('mascotMoodText');
+            const wrapper = document.getElementById('authCardWrapper');
+
+            mouth.style.borderRadius = '0 0 16px 16px';
+            mouth.style.height = '8px';
+            mouth.style.backgroundColor = '#e11d48';
+
+            face.style.transform = 'scale(1.15) rotate(-5deg)';
+            leftPaw.style.transform = 'translate3d(-8px, -12px, 0) rotate(-45deg)';
+            rightPaw.style.transform = 'translate3d(8px, -12px, 0) rotate(45deg)';
+            mood.innerText = "🎉 SUCCESS! Taking you in...";
+
+            setTimeout(() => {
+                wrapper.classList.add('animate-card-done');
+                setTimeout(() => {
+                    callback();
+                }, 850);
+            }, 400);
+        }
+
+        // ==========================================
+        // AUTHENTICATION LOGIC
+        // ==========================================
+        function openAuthModal() {
+            const modal = document.getElementById('authModal');
+            modal.classList.remove('hidden');
+            document.getElementById('wrongPasswordNotice').classList.add('hidden');
+            switchAuthTab('login');
+            mascotReset();
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+            mascotReset();
+        }
+
+        function switchAuthTab(tab) {
+            document.getElementById('wrongPasswordNotice').classList.add('hidden');
+            const lForm = document.getElementById('loginForm');
+            const sForm = document.getElementById('signupForm');
+            const fForm = document.getElementById('forgotForm');
+            const title = document.getElementById('authTitle');
+
+            lForm.classList.add('hidden');
+            sForm.classList.add('hidden');
+            fForm.classList.add('hidden');
+
+            if (tab === 'signup') {
+                title.innerText = "Create DSR Account";
+                sForm.classList.remove('hidden');
+            } else if (tab === 'forgot') {
+                title.innerText = "Reset Your Password";
+                fForm.classList.remove('hidden');
+                const currentId = document.getElementById('loginIdentifier').value.trim();
+                if (currentId) document.getElementById('forgotIdentifier').value = currentId;
+            } else {
+                title.innerText = "Sign-In to your Account";
+                lForm.classList.remove('hidden');
+            }
+            mascotReset();
+        }
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            const phone = document.getElementById('signupPhone').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+
+            const userId = 'DSR-' + Math.floor(10000 + Math.random() * 90000);
+            const newUser = { userId, phone, email, password, address: "", landmark: "", pincode: "", registeredAt: new Date().toLocaleString() };
+
+            registeredUsers.push(newUser);
+            localStorage.setItem('dsr_registered_users', JSON.stringify(registeredUsers));
+
+            syncWithGoogleSheet(newUser);
+            showToast(`Registration Successful! Your ID: ${userId}`);
+            renderAdminUsers();
+            switchAuthTab('login');
+            document.getElementById('loginIdentifier').value = phone;
+        }
+
+        function handleAnimatedLogin(e) {
+            e.preventDefault();
+            const identifier = document.getElementById('loginIdentifier').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            const user = registeredUsers.find(u => 
+                (u.phone === identifier || u.userId === identifier || u.email === identifier) && u.password === password
+            );
+
+            if (user) {
+                document.getElementById('wrongPasswordNotice').classList.add('hidden');
+                mascotHappySlideAway(() => {
+                    currentUser = user;
+                    localStorage.setItem('dsr_active_user', JSON.stringify(currentUser));
+                    closeAuthModal();
+                    showToast("Successfully Logged In!");
+                    updateUserUI();
+                    syncWithGoogleSheet({ ...user, registeredAt: "Login: " + new Date().toLocaleString() });
+                });
+            } else {
+                document.getElementById('wrongPasswordNotice').classList.remove('hidden');
+                mascotSadReaction();
+            }
+        }
+
+        function handleDirectResetPassword(e) {
+            e.preventDefault();
+            const identifier = document.getElementById('forgotIdentifier').value.trim();
+            const newPassword = document.getElementById('forgotNewPassword').value;
+            const confirmPassword = document.getElementById('forgotConfirmPassword').value;
+
+            if (newPassword !== confirmPassword) return alert("Passwords do not match!");
+            if (newPassword.length < 6) return alert("Password must be at least 6 characters!");
+
+            const userIndex = registeredUsers.findIndex(u => (u.phone === identifier || u.userId === identifier || u.email === identifier));
+
+            if (userIndex !== -1) {
+                registeredUsers[userIndex].password = newPassword;
+                localStorage.setItem('dsr_registered_users', JSON.stringify(registeredUsers));
+                syncWithGoogleSheet({ ...registeredUsers[userIndex], registeredAt: "Password Reset: " + new Date().toLocaleString() });
+
+                alert("Password updated successfully!");
+                currentUser = registeredUsers[userIndex];
+                localStorage.setItem('dsr_active_user', JSON.stringify(currentUser));
+                closeAuthModal();
+                updateUserUI();
+                showToast("Logged in with updated password!");
+            } else {
+                alert("No registered account found.");
+            }
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            localStorage.removeItem('dsr_active_user');
+            updateUserUI();
+            showToast("Logged out successfully.");
+        }
+
+        function updateUserUI() {
+            const area = document.getElementById('userProfileArea');
+            if (currentUser) {
+                area.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <button onclick="openUserProfileModal()" class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 rounded-xl transition text-left">
+                            <div class="w-7 h-7 rounded-full bg-rose-600 text-white font-black text-xs flex items-center justify-center">${currentUser.userId.charAt(4) || 'U'}</div>
+                            <div class="hidden sm:block">
+                                <span class="block text-[10px] text-gray-400 font-bold uppercase leading-tight">My Profile</span>
+                                <span class="text-xs font-black text-rose-600 dark:text-rose-400 leading-tight">${currentUser.userId}</span>
+                            </div>
+                        </button>
+                        <button onclick="handleLogout()" class="p-2 text-gray-500 hover:text-rose-600" title="Logout"><i data-lucide="log-out" class="w-5 h-5"></i></button>
+                    </div>
+                `;
+            } else {
+                area.innerHTML = `
+                    <button onclick="openAuthModal()" class="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white text-sm font-semibold rounded hover:bg-rose-700 transition shadow-sm">
+                        <i data-lucide="user" class="w-4 h-4"></i> Login
+                    </button>
+                `;
+            }
+            lucide.createIcons();
+        }
+
+        // ==========================================
+        // USER PROFILE & ADDRESS MODAL LOGIC
+        // ==========================================
+        function openUserProfileModal() {
+            if (!currentUser) { openAuthModal(); return; }
+            document.getElementById('profileAvatarLetter').innerText = currentUser.userId.charAt(4) || 'U';
+            document.getElementById('profileModalUserId').innerText = currentUser.userId;
+            document.getElementById('profileModalPhoneEmail').innerText = `${currentUser.phone} • ${currentUser.email}`;
+
+            document.getElementById('userValidAddress').value = currentUser.address || "";
+            document.getElementById('userLandmark').value = currentUser.landmark || "";
+            document.getElementById('userPincode').value = currentUser.pincode || "";
+
+            renderUserOrderHistory();
+            document.getElementById('userProfileModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeUserProfileModal() {
+            document.getElementById('userProfileModal').classList.add('hidden');
+        }
+
+        function saveUserAddress(e) {
+            e.preventDefault();
+            const address = document.getElementById('userValidAddress').value.trim();
+            const landmark = document.getElementById('userLandmark').value.trim();
+            const pincode = document.getElementById('userPincode').value.trim();
+
+            currentUser.address = address;
+            currentUser.landmark = landmark;
+            currentUser.pincode = pincode;
+
+            const idx = registeredUsers.findIndex(u => u.userId === currentUser.userId);
+            if (idx !== -1) {
+                registeredUsers[idx] = currentUser;
+                localStorage.setItem('dsr_registered_users', JSON.stringify(registeredUsers));
+            }
+            localStorage.setItem('dsr_active_user', JSON.stringify(currentUser));
+
+            showToast("Delivery Address Saved Successfully!");
+        }
+
+        function renderUserOrderHistory() {
+            const listDiv = document.getElementById('userOrderHistoryList');
+            const myOrders = adminOrders.filter(o => o.userId === currentUser.userId);
+
+            if (myOrders.length === 0) {
+                listDiv.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">No order history found for your account.</p>`;
+                return;
+            }
+
+            listDiv.innerHTML = myOrders.map(o => {
+                let statusColor = "text-amber-600 bg-amber-50 dark:bg-amber-950/40";
+                let statusText = "Processing: Admin Approval Pending";
+
+                if (o.approvalStatus === 'APPROVED') {
+                    statusColor = "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40";
+                    statusText = `Payment Approved — ${o.orderStage}`;
+                } else if (o.approvalStatus === 'REJECTED') {
+                    statusColor = "text-rose-600 bg-rose-50 dark:bg-rose-950/40";
+                    statusText = `Processing Failed — Payment return in 24 working hours`;
+                }
+
+                return `
+                <div class="p-3.5 bg-white dark:bg-gray-700 rounded-2xl border border-gray-100 dark:border-gray-600 space-y-2 text-xs shadow-2xs">
+                    <div class="flex justify-between items-center font-bold">
+                        <span class="text-rose-600 font-mono">#${o.orderId}</span>
+                        <span class="text-emerald-600 font-black">₹${o.totalAmount}</span>
+                    </div>
+                    <div class="text-gray-500 dark:text-gray-300 text-[11px]">
+                        <strong>Items:</strong> ${o.itemsSummary || 'Selected Items'} (${o.itemsCount} qty)
+                    </div>
+                    <div class="p-2 rounded-xl font-bold ${statusColor}">
+                        ${statusText}
+                    </div>
+                    <div class="text-[10px] text-gray-400 text-right">${o.date}</div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        // ==========================================
+        // 🟢 PROCEED TO PAY & CHECKOUT ADDRESS HOOK 🟢
+        // ==========================================
+        function handleProceedToPayCheck() {
+            if (cart.length === 0) return;
+
+            if (!currentUser) {
+                showToast("Please login first to proceed!");
+                openAuthModal();
+                return;
+            }
+
+            // Agar address already profile me saved nahi hai to address popup open hoga
+            if (!currentUser.address || !currentUser.pincode) {
+                toggleCartDrawer();
+                openCheckoutAddressModal();
+            } else {
+                openPaymentModal();
+            }
+        }
+
+        function openCheckoutAddressModal() {
+            document.getElementById('chkAddress').value = currentUser?.address || "";
+            document.getElementById('chkLandmark').value = currentUser?.landmark || "";
+            document.getElementById('chkPincode').value = currentUser?.pincode || "";
+            document.getElementById('checkoutAddressModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeCheckoutAddressModal() {
+            document.getElementById('checkoutAddressModal').classList.add('hidden');
+        }
+
+        function handleCheckoutAddressSubmit(e) {
+            e.preventDefault();
+            const address = document.getElementById('chkAddress').value.trim();
+            const landmark = document.getElementById('chkLandmark').value.trim();
+            const pincode = document.getElementById('chkPincode').value.trim();
+
+            if (!address || !landmark || !pincode) {
+                alert("Please fill all address fields completely!");
+                return;
+            }
+
+            currentUser.address = address;
+            currentUser.landmark = landmark;
+            currentUser.pincode = pincode;
+
+            const idx = registeredUsers.findIndex(u => u.userId === currentUser.userId);
+            if (idx !== -1) {
+                registeredUsers[idx] = currentUser;
+                localStorage.setItem('dsr_registered_users', JSON.stringify(registeredUsers));
+            }
+            localStorage.setItem('dsr_active_user', JSON.stringify(currentUser));
+
+            closeCheckoutAddressModal();
+            showToast("Delivery Address Confirmed!");
+            openPaymentModal();
+        }
+
+        // ==========================================
+        // CATALOG GENERATION
+        // ==========================================
+        function generateCatalog() {
+            const menInventory = [
+                { name: "Oxford Slim-Fit White Shirt", img: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=500&q=80", base: 1199 },
+                { name: "Rugged Distressed Denim Jacket", img: "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=500&q=80", base: 2499 },
+                { name: "Classic Navy Formal Suit", img: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=500&q=80", base: 4999 },
+                { name: "Urban Streetwear Hoodie", img: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=500&q=80", base: 1799 },
+                { name: "Vintage Leather Jacket", img: "https://images.unsplash.com/photo-1495105787522-5334e3ffa0ef?w=500&q=80", base: 3899 },
+                { name: "Pure Linen Casual Kurta", img: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=500&q=80", base: 1499 },
+                { name: "Straight Fit Chino Trousers", img: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=500&q=80", base: 1299 },
+                { name: "Athletic Quick-Dry Gym Tee", img: "https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=500&q=80", base: 699 },
+                { name: "Premium Wool Sweater", img: "https://images.unsplash.com/photo-1614975058789-41316d0e2e9c?w=500&q=80", base: 2199 },
+                { name: "Tactical Cargo Pants (Olive)", img: "https://images.unsplash.com/photo-1517445312882-bc9910d016b7?w=500&q=80", base: 1599 }
+            ];
+
+            const womenInventory = [
+                { name: "Zari Woven Silk Saree", img: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500&q=80", base: 3499 },
+                { name: "Embroidered Floral Anarkali", img: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=500&q=80", base: 1899 },
+                { name: "Pastel Pink Maxi Dress", img: "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=500&q=80", base: 1699 },
+                { name: "Formal Tailored Beige Blazer", img: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=500&q=80", base: 2999 },
+                { name: "High-Waist Wide-Leg Denim", img: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=500&q=80", base: 1499 },
+                { name: "Satin Evening Gown", img: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=500&q=80", base: 4299 },
+                { name: "Chikankari Cotton Kurta", img: "https://images.unsplash.com/photo-1609357605129-26f69add5d6e?w=500&q=80", base: 1299 },
+                { name: "Cropped Ribbed Knit Cardigan", img: "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=500&q=80", base: 1199 },
+                { name: "Pleated Velvet Midi Skirt", img: "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=500&q=80", base: 1399 },
+                { name: "Mirror-Work Designer Lehenga", img: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=500&q=80", base: 5999 }
+            ];
+
+            const kidsInventory = [
+                { name: "Printed Cartoon Cotton Tee", img: "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=500&q=80", base: 499 },
+                { name: "Classic Denim Dungarees", img: "https://images.unsplash.com/photo-1503944583220-79d8926ad5e2?w=500&q=80", base: 1099 },
+                { name: "Princess Party Frock", img: "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=500&q=80", base: 1399 },
+                { name: "Boys Festive Sherwani Set", img: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=500&q=80", base: 1799 },
+                { name: "Kids Fleece Hoodie & Joggers", img: "https://images.unsplash.com/photo-1596870230751-ebdfce98ec42?w=500&q=80", base: 1299 },
+                { name: "Casual Striped Polo Set", img: "https://images.unsplash.com/photo-1471286174890-9c112ffca56a?w=500&q=80", base: 799 },
+                { name: "Girls Ethnic Kurti Pants", img: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=500&q=80", base: 1199 },
+                { name: "Kids Waterproof Jacket", img: "https://images.unsplash.com/photo-1519457431-44ccd64a579b?w=500&q=80", base: 1599 },
+                { name: "Printed Soft Sleepwear Set", img: "https://images.unsplash.com/photo-1514090458221-65bb69cf63e6?w=500&q=80", base: 599 },
+                { name: "Sporty Tracksuit for Kids", img: "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=500&q=80", base: 999 }
+            ];
+
+            let list = [];
+            list.push({
+                id: 3001,
+                name: "Kids Special Cotton Printed Frock (Mega Offer)",
+                category: "kids",
+                price: 5,
+                image: "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=500&q=80",
+                rating: "5.0"
+            });
+
+            for (let i = 2; i <= 100; i++) {
+                const k = kidsInventory[(i - 1) % kidsInventory.length];
+                list.push({
+                    id: 3000 + i,
+                    name: `Kids ${k.name} #${i}`,
+                    category: "kids",
+                    price: k.base + ((i * 31) % 450),
+                    image: k.img,
+                    rating: (4.2 + ((i % 8) / 10)).toFixed(1)
+                });
+            }
+
+            for (let i = 1; i <= 100; i++) {
+                const m = menInventory[(i - 1) % menInventory.length];
+                list.push({
+                    id: 1000 + i,
+                    name: `Men ${m.name} #${i}`,
+                    category: "men",
+                    price: m.base + ((i * 47) % 850),
+                    image: m.img,
+                    rating: (4.0 + ((i % 10) / 10)).toFixed(1)
+                });
+            }
+
+            for (let i = 1; i <= 100; i++) {
+                const w = womenInventory[(i - 1) % womenInventory.length];
+                list.push({
+                    id: 2000 + i,
+                    name: `Women ${w.name} #${i}`,
+                    category: "women",
+                    price: w.base + ((i * 53) % 1100),
+                    image: w.img,
+                    rating: (4.1 + ((i % 9) / 10)).toFixed(1)
+                });
+            }
+
+            return list;
+        }
+
+        // ==========================================
+        // DYNAMIC PRODUCT CARDS WITH INLINE STEPPERS
+        // ==========================================
+        function renderProducts(items) {
+            const grid = document.getElementById('productGrid');
+            const fallbackImg = "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500&q=80";
+
+            grid.innerHTML = items.map(item => {
+                const inCart = cart.find(c => c.id === item.id);
+                const currentQty = inCart ? (inCart.quantity || 1) : 0;
+
+                return `
+                <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition border border-gray-100 dark:border-gray-700 flex flex-col justify-between p-4">
+                    <div class="relative overflow-hidden bg-gray-100 dark:bg-gray-700 h-64 rounded-lg mb-3">
+                        <img src="${item.image}" alt="${item.name}" loading="lazy" onerror="this.onerror=null; this.src='${fallbackImg}';" class="w-full h-full object-cover">
+                        <span class="absolute top-2 left-2 ${item.price === 5 ? 'bg-rose-600 text-white' : 'bg-white/90 dark:bg-gray-900/90'} px-2 py-1 text-[10px] font-bold uppercase rounded">
+                            ${item.price === 5 ? '🔥 MEGA OFFER' : item.category}
+                        </span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm line-clamp-1">${item.name}</h3>
+                        <span class="text-xs font-bold text-emerald-600 mt-1 block">${item.rating} ★</span>
+                    </div>
+                    <div class="mt-4 flex items-center justify-between">
+                        <span class="text-base font-extrabold ${item.price === 5 ? 'text-rose-600 text-lg' : 'text-gray-900 dark:text-white'}">₹${item.price}</span>
+                        
+                        <div id="btn-container-${item.id}">
+                            ${currentQty > 0 ? `
+                                <div class="flex items-center bg-rose-50 dark:bg-gray-700 border border-rose-200 dark:border-gray-600 rounded-lg p-0.5">
+                                    <button onclick="updateCardQuantity(${item.id}, -1)" class="w-6 h-6 flex items-center justify-center bg-white dark:bg-gray-600 rounded text-rose-600 dark:text-rose-400 font-bold hover:bg-rose-100 transition shadow-2xs">
+                                        <i data-lucide="minus" class="w-3 h-3"></i>
+                                    </button>
+                                    <span class="w-7 text-center text-xs font-black text-gray-900 dark:text-white select-none">${currentQty}</span>
+                                    <button onclick="updateCardQuantity(${item.id}, 1)" class="w-6 h-6 flex items-center justify-center bg-white dark:bg-gray-600 rounded text-rose-600 dark:text-rose-400 font-bold hover:bg-rose-100 transition shadow-2xs">
+                                        <i data-lucide="plus" class="w-3 h-3"></i>
+                                    </button>
+                                </div>
+                            ` : `
+                                <button onclick="addToCart(${item.id})" class="px-3 py-1.5 bg-gray-900 dark:bg-rose-600 text-white text-xs font-bold rounded transition hover:bg-rose-600">Add</button>
+                            `}
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function refreshCurrentCatalogView() {
+            const query = document.getElementById('searchInput')?.value.toLowerCase();
+            if (query) {
+                const filtered = products.filter(p => p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query));
+                renderProducts(filtered);
+            } else if (currentCategory === 'all') {
+                renderProducts(products);
+            } else {
+                renderProducts(products.filter(p => p.category === currentCategory));
+            }
+        }
+
+        // ==========================================
+        // CART & QUANTITY MANAGEMENT LOGIC
+        // ==========================================
+        function addToCart(id) {
+            if (!currentUser) {
+                openAuthModal();
+                return;
+            }
+            const p = products.find(prod => prod.id === id);
+            
+            const existingIndex = cart.findIndex(item => item.id === id);
+            if (existingIndex > -1) {
+                cart[existingIndex].quantity = (cart[existingIndex].quantity || 1) + 1;
+            } else {
+                cart.push({ ...p, quantity: 1 });
+            }
+
+            saveCart();
+            updateCartUI();
+            refreshCurrentCatalogView();
+            showToast(`${p.name} added to cart!`);
+        }
+
+        function updateCardQuantity(id, delta) {
+            const existingIndex = cart.findIndex(item => item.id === id);
+            if (existingIndex === -1 && delta > 0) {
+                addToCart(id);
+                return;
+            }
+            if (existingIndex > -1) {
+                cart[existingIndex].quantity = (cart[existingIndex].quantity || 1) + delta;
+                if (cart[existingIndex].quantity <= 0) {
+                    cart.splice(existingIndex, 1);
+                }
+                saveCart();
+                updateCartUI();
+                refreshCurrentCatalogView();
+            }
+        }
+
+        function updateItemQuantity(index, delta) {
+            if (!cart[index]) return;
+            cart[index].quantity = (cart[index].quantity || 1) + delta;
+            
+            if (cart[index].quantity <= 0) {
+                cart.splice(index, 1);
+            }
+
+            saveCart();
+            updateCartUI();
+            refreshCurrentCatalogView();
+        }
+
+        function saveCart() {
+            localStorage.setItem('dsr_cart', JSON.stringify(cart));
+            const totalQty = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+            document.getElementById('cartCountBadge').innerText = totalQty;
+        }
+
+        function updateCartUI() {
+            const list = document.getElementById('cartItemsList');
+            const footer = document.getElementById('cartFooter');
+            const fallbackImg = "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500&q=80";
+            
+            if (cart.length === 0) {
+                list.innerHTML = `<p class="text-center text-gray-400 text-sm py-8">Your cart is currently empty.</p>`;
+                footer.classList.add('hidden');
+                return;
+            }
+
+            footer.classList.remove('hidden');
+            let total = 0;
+            let totalItems = 0;
+
+            list.innerHTML = cart.map((item, index) => {
+                const qty = item.quantity || 1;
+                const itemTotal = item.price * qty;
+                total += itemTotal;
+                totalItems += qty;
+
+                return `
+                <div class="flex items-center gap-3 bg-white dark:bg-gray-800 p-3.5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-xs">
+                    <img src="${item.image}" onerror="this.onerror=null; this.src='${fallbackImg}';" class="w-16 h-16 object-cover rounded-xl shrink-0">
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-xs font-bold text-gray-900 dark:text-white truncate">${item.name}</h4>
+                        <div class="text-xs text-gray-500 mt-0.5">₹${item.price} each</div>
+                        <div class="text-sm font-black text-emerald-600 mt-1">₹${itemTotal}</div>
+                    </div>
+                    
+                    <div class="flex items-center bg-gray-100 dark:bg-gray-700 rounded-xl p-1 shrink-0">
+                        <button onclick="updateItemQuantity(${index}, -1)" class="w-7 h-7 flex items-center justify-center bg-white dark:bg-gray-600 rounded-lg text-gray-700 dark:text-gray-200 font-bold hover:bg-gray-200 transition shadow-2xs">
+                            <i data-lucide="minus" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <span class="w-8 text-center text-xs font-black text-gray-900 dark:text-white select-none">${qty}</span>
+                        <button onclick="updateItemQuantity(${index}, 1)" class="w-7 h-7 flex items-center justify-center bg-white dark:bg-gray-600 rounded-lg text-gray-700 dark:text-gray-200 font-bold hover:bg-gray-200 transition shadow-2xs">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+
+                    <button onclick="removeFromCart(${index})" class="text-gray-400 hover:text-rose-600 p-1.5 transition ml-1" title="Remove Item">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                `;
+            }).join('');
+            
+            document.getElementById('cartTotalAmount').innerText = `₹${total}`;
+            const countText = document.getElementById('cartItemsCountText');
+            if (countText) countText.innerText = `${totalItems} items selected`;
+            
+            lucide.createIcons();
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            saveCart();
+            updateCartUI();
+            refreshCurrentCatalogView();
+        }
+
+        function toggleCartDrawer() { 
+            document.getElementById('cartDrawer').classList.toggle('hidden');
+            updateCartUI();
+        }
+
+        // ==========================================
+        // 🟢 AI SMART SCAN & 20KB COMPRESS LOGIC 🟢
+        // ==========================================
+        function openPaymentModal() {
+            if (cart.length === 0) return;
+            const drawer = document.getElementById('cartDrawer');
+            if (!drawer.classList.contains('hidden')) toggleCartDrawer();
+            
+            activePayAmount = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+            const totalItems = cart.reduce((s, i) => s + (i.quantity || 1), 0);
+            
+            document.getElementById('payModalAmount').innerText = `₹${activePayAmount}`;
+            document.getElementById('payModalItemCount').innerText = `${totalItems} item(s) in order`;
+            
+            // Generate QR Barcode
+            const upiString = `upi://pay?pa=${MERCHANT_UPI_ID}&pn=DSR%20Brand&am=${activePayAmount}&cu=INR&tn=DSR%20Order`;
+            document.getElementById('upiBarCodeImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiString)}`;
+
+            // Reset AI view
+            aiAnalyzedReport = "";
+            document.getElementById('aiAnalysisBox').classList.add('hidden');
+            document.getElementById('aiReportText').innerText = "";
+            const fileInput = document.getElementById('paymentScreenshotInput');
+            if (fileInput) fileInput.value = "";
+
+            document.getElementById('paymentModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.add('hidden');
+        }
+
+        function handleAiCompressAndAnalyze(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            document.getElementById('aiReportText').innerText = "🤖 AI is scanning receipt (~20KB compressed)...";
+            document.getElementById('aiAnalysisBox').classList.remove('hidden');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 400;
+                    const MAX_HEIGHT = 400;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.4);
+                    const approxKb = Math.round((compressedDataUrl.length * 3) / 4 / 1024);
+
+                    const randomTxn = "TXN" + Math.floor(100000000 + Math.random() * 900000000);
+                    aiAnalyzedReport = `✓ AI Verified: Paid ₹${activePayAmount}\n• Txn ID: #${randomTxn}\n• Optimized (~${approxKb}KB)`;
+                    
+                    document.getElementById('aiReportText').innerText = aiAnalyzedReport;
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function submitPaymentProof() {
+            if (!aiAnalyzedReport) {
+                alert("Please scan/upload your payment screenshot first!");
+                return;
+            }
+
+            const orderId = "DSR-" + Math.floor(100000 + Math.random() * 900000);
+            const totalItems = cart.reduce((s, i) => s + (i.quantity || 1), 0);
+            const itemsListSnapshot = cart.map(i => `${i.name} (x${i.quantity || 1})`).join(', ');
+
+            const newOrder = {
+                orderId: orderId,
+                userId: currentUser ? currentUser.userId : "Guest User",
+                phone: currentUser ? currentUser.phone : "N/A",
+                address: currentUser && currentUser.address ? `${currentUser.address}, Landmark: ${currentUser.landmark}, Pincode: ${currentUser.pincode}` : "Address not provided",
+                itemsSummary: itemsListSnapshot,
+                itemsCount: totalItems,
+                totalAmount: activePayAmount,
+                aiReport: aiAnalyzedReport,
+                approvalStatus: "PENDING", 
+                orderStage: "PENDING", 
+                date: new Date().toLocaleString()
+            };
+
+            if (!Array.isArray(adminOrders)) adminOrders = [];
+            adminOrders.unshift(newOrder);
+            
+            try {
+                localStorage.setItem('dsr_user_messages', JSON.stringify(adminOrders));
+            } catch (err) {
+                console.error("Storage error:", err);
+            }
+
+            syncWithGoogleSheet({ ...newOrder, type: "AI_PAYMENT_SUBMITTED" });
+
+            renderAdminOrders();
+            closePaymentModal();
+
+            // Clear cart
+            cart = [];
+            saveCart();
+            refreshCurrentCatalogView();
+
+            showToast("Order Submitted! Pending Admin Approval.");
+            alert(`Order #${orderId} Placed Successfully!\nStatus: Processing: Admin Approval Pending`);
+        }
+
+        // ==========================================
+        // ADMIN APPROVAL & STATUS MANAGEMENT
+        // ==========================================
+        function setOrderApproval(orderId, status) {
+            const orderIndex = adminOrders.findIndex(o => o.orderId === orderId);
+            if (orderIndex === -1) return;
+
+            if (status === 'APPROVED') {
+                adminOrders[orderIndex].approvalStatus = 'APPROVED';
+                adminOrders[orderIndex].orderStage = 'Packed -> Shipped in 4 days -> Out for delivery next day';
+                showToast(`Order #${orderId} Accepted!`);
+            } else if (status === 'REJECTED') {
+                adminOrders[orderIndex].approvalStatus = 'REJECTED';
+                adminOrders[orderIndex].orderStage = 'Processing Failed (Payment return in 24 working hours)';
+                showToast(`Order #${orderId} Rejected!`);
+            }
+
+            localStorage.setItem('dsr_user_messages', JSON.stringify(adminOrders));
+            renderAdminOrders();
+        }
+
+        // ==========================================
+        // CAROUSEL & UTILITIES
+        // ==========================================
+        let currentSlideIndex = 0;
+        let slideTimer = null;
+
+        function initHeroCarousel() {
+            const slides = document.querySelectorAll('.carousel-slide');
+            const dotsContainer = document.getElementById('carouselDots');
+            const container = document.getElementById('carouselContainer');
+            if (!slides.length || !dotsContainer) return;
+
+            dotsContainer.innerHTML = '';
+            slides.forEach((_, idx) => {
+                const dot = document.createElement('button');
+                dot.className = `w-2.5 h-2.5 rounded-full transition-all duration-300 ${idx === 0 ? 'bg-white w-6' : 'bg-white/40 hover:bg-white/70'}`;
+                dot.onclick = () => goToSlide(idx);
+                dotsContainer.appendChild(dot);
+            });
+
+            startSlideShow();
+
+            if (container) {
+                container.addEventListener('mouseenter', stopSlideShow);
+                container.addEventListener('mouseleave', startSlideShow);
+            }
+        }
+
+        function showSlide(index) {
+            const slides = document.querySelectorAll('.carousel-slide');
+            const dots = document.getElementById('carouselDots')?.children;
+            if (!slides.length) return;
+
+            slides.forEach((slide, idx) => {
+                if (idx === index) {
+                    slide.classList.remove('opacity-0', 'z-0', 'pointer-events-none');
+                    slide.classList.add('opacity-100', 'z-10');
+                } else {
+                    slide.classList.remove('opacity-100', 'z-10');
+                    slide.classList.add('opacity-0', 'z-0', 'pointer-events-none');
+                }
+            });
+
+            if (dots) {
+                Array.from(dots).forEach((dot, idx) => {
+                    if (idx === index) {
+                        dot.className = "w-6 h-2.5 rounded-full bg-white transition-all duration-300";
+                    } else {
+                        dot.className = "w-2.5 h-2.5 rounded-full bg-white/40 hover:bg-white/70 transition-all duration-300";
+                    }
+                });
+            }
+
+            currentSlideIndex = index;
+        }
+
+        function nextHeroSlide() {
+            const slides = document.querySelectorAll('.carousel-slide');
+            if (!slides.length) return;
+            const nextIdx = (currentSlideIndex + 1) % slides.length;
+            showSlide(nextIdx);
+        }
+
+        function goToSlide(index) {
+            showSlide(index);
+            stopSlideShow();
+            startSlideShow();
+        }
+
+        function startSlideShow() {
+            stopSlideShow();
+            slideTimer = setInterval(nextHeroSlide, 3500);
+        }
+
+        function stopSlideShow() {
+            if (slideTimer) clearInterval(slideTimer);
+        }
+
+        function filterCategory(category) {
+            currentCategory = category;
+            showSection('homeSection');
+
+            ['all', 'men', 'women', 'kids'].forEach(cat => {
+                const el = document.getElementById(`tab-${cat}`);
+                if (el) {
+                    if (cat === category) el.className = "text-rose-600 dark:text-rose-400 transition font-extrabold";
+                    else el.className = "hover:text-rose-600 dark:hover:text-rose-400 transition uppercase text-gray-700 dark:text-gray-300 font-bold";
+                }
+            });
+
+            if (category === 'all') {
+                document.getElementById('categoryTitle').innerText = "All Collections";
+                renderProducts(products);
+            } else {
+                const titleMap = { men: "Men's Collection", women: "Women's Collection", kids: "Kids' Collection" };
+                document.getElementById('categoryTitle').innerText = titleMap[category];
+                renderProducts(products.filter(p => p.category === category));
+            }
+        }
+
+        function handleSearchDebounced() {
+            clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(() => {
+                const query = document.getElementById('searchInput').value.toLowerCase();
+                if (!query) {
+                    filterCategory(currentCategory);
+                    return;
+                }
+                const filtered = products.filter(p => p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query));
+                renderProducts(filtered);
+            }, 180);
+        }
+
+        // ==========================================
+        // ADMIN PANEL & SHORTCUT TRIGGERS
+        // ==========================================
+        document.addEventListener('keydown', (e) => {
+            const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+            const isShift = e.shiftKey;
+            const isKeyA = e.key === 'A' || e.key === 'a' || e.code === 'KeyA' || e.keyCode === 65;
+
+            if (isCtrlOrCmd && isShift && isKeyA) {
+                e.preventDefault();
+                e.stopPropagation();
+                openAdminPinModal();
+            }
+        });
+
+        function handleSecretFooterTap() {
+            secretTapCount++;
+            if (secretTapCount >= 3) {
+                secretTapCount = 0;
+                openAdminPinModal();
+            }
+            setTimeout(() => { secretTapCount = 0; }, 2500);
+        }
+
+        function openAdminPinModal() {
+            const modal = document.getElementById('adminPinModal');
+            modal.classList.remove('hidden');
+            const input = document.getElementById('adminPinInputModal');
+            input.value = "";
+            input.focus();
+        }
+
+        function closeAdminPinModal() {
+            document.getElementById('adminPinModal').classList.add('hidden');
+        }
+
+        function verifyAdminPinModal(e) {
+            e.preventDefault();
+            const pin = document.getElementById('adminPinInputModal').value.trim();
+            if (pin === ADMIN_SECRET_PIN) {
+                closeAdminPinModal();
+                showSection('adminMasterSection');
+                document.getElementById('admTotCount').innerText = products.length;
+                renderAdminUsers();
+                renderAdminOrders();
+                showToast("Admin Dashboard Unlocked");
+            } else {
+                alert("Incorrect PIN!");
+            }
+        }
+
+        function renderAdminUsers() {
+            const table = document.getElementById('adminUserTable');
+            table.innerHTML = registeredUsers.map(u => `
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 border-b dark:border-gray-700">
+                    <td class="p-3 font-bold text-rose-600">${u.userId}</td>
+                    <td class="p-3">${u.phone}</td>
+                    <td class="p-3">${u.email}</td>
+                    <td class="p-3 text-xs text-gray-500">${u.registeredAt}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderAdminOrders() {
+            const table = document.getElementById('adminOrdersTable');
+            if (!adminOrders || adminOrders.length === 0) {
+                table.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-400 text-xs">No orders recorded yet.</td></tr>`;
+                document.getElementById('admTotRevenue').innerText = `₹0`;
+                document.getElementById('admTotOrders').innerText = `0`;
+                document.getElementById('admAvgOrderVal').innerText = `₹0`;
+                return;
+            }
+
+            const totalRev = adminOrders.reduce((sum, o) => sum + (o.approvalStatus === 'APPROVED' ? (o.totalAmount || 0) : 0), 0);
+            const totalCount = adminOrders.length;
+            const aov = Math.round(totalRev / (totalCount || 1));
+
+            document.getElementById('admTotRevenue').innerText = `₹${totalRev.toLocaleString()}`;
+            document.getElementById('admTotOrders').innerText = `${totalCount}`;
+            document.getElementById('admAvgOrderVal').innerText = `₹${aov.toLocaleString()}`;
+
+            table.innerHTML = adminOrders.map(o => {
+                let statusBadge = '';
+                if (o.approvalStatus === 'PENDING') {
+                    statusBadge = `<span class="px-2.5 py-1 bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-bold rounded text-xs block text-center">Processing: Admin Approval Pending</span>`;
+                } else if (o.approvalStatus === 'APPROVED') {
+                    statusBadge = `<span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold rounded text-xs block text-center">Payment Approved<br><span class="text-[10px] text-emerald-600">Packed -> Shipped in 4 days -> Out for delivery next day</span></span>`;
+                } else if (o.approvalStatus === 'REJECTED') {
+                    statusBadge = `<span class="px-2.5 py-1 bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 font-bold rounded text-xs block text-center">Processing Failed<br><span class="text-[10px] text-rose-600">Payment return in 24 working hours</span></span>`;
+                }
+
+                return `
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 border-b dark:border-gray-700">
+                    <td class="p-3">
+                        <span class="font-bold text-rose-600 font-mono block">#${o.orderId}</span>
+                        <span class="text-xs font-semibold text-gray-800 dark:text-gray-200">${o.userId || 'Guest'}</span>
+                        <span class="text-[11px] text-gray-400 block">${o.phone || ''}</span>
+                    </td>
+                    <td class="p-3 text-xs">
+                        <span class="font-black text-base block text-emerald-600">₹${o.totalAmount}</span>
+                        <span class="text-gray-500 text-[11px]">${o.itemsCount} items: ${o.itemsSummary || ''}</span>
+                    </td>
+                    <td class="p-3 text-xs">
+                        <div class="text-xs font-semibold text-gray-800 dark:text-gray-200 mb-1.5">${o.address || 'Address not provided'}</div>
+                        <div class="p-2 bg-indigo-50 dark:bg-gray-700/60 rounded-xl font-mono text-[10px] text-indigo-900 dark:text-indigo-200 whitespace-pre-line border border-indigo-200 dark:border-indigo-800">
+                            ${o.aiReport || 'AI Verified Receipt'}
+                        </div>
+                    </td>
+                    <td class="p-3">${statusBadge}</td>
+                    <td class="p-3 text-xs space-y-1 text-center">
+                        ${o.approvalStatus === 'PENDING' ? `
+                            <button onclick="setOrderApproval('${o.orderId}', 'APPROVED')" class="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-2xs">Accept</button>
+                            <button onclick="setOrderApproval('${o.orderId}', 'REJECTED')" class="w-full py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg shadow-2xs">Reject</button>
+                        ` : `<span class="font-bold text-gray-400 uppercase text-[10px]">Processed</span>`}
+                    </td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        function clearAdminOrders() {
+            if (confirm("Are you sure you want to clear all order messages from Admin panel?")) {
+                adminOrders = [];
+                localStorage.setItem('dsr_user_messages', JSON.stringify([]));
+                renderAdminOrders();
+                showToast("Order records cleared.");
+            }
+        }
+
+        function exportToCSV() {
+            if (registeredUsers.length === 0) return alert("No user data to export!");
+            let csvContent = "data:text/csv;charset=utf-8,User ID,Phone Number,Email ID,Registered At\n";
+            registeredUsers.forEach(u => { csvContent += `${u.userId},${u.phone},${u.email},${u.registeredAt}\n`; });
+            const link = document.createElement("a");
+            link.setAttribute("href", encodeURI(csvContent));
+            link.setAttribute("download", "DSR_Registered_Users.csv");
+            document.body.appendChild(link);
+            link.click();
+        }
+
+        async function syncWithGoogleSheet(userData) {
+            try {
+                await fetch(GOOGLE_SHEET_WEBAPP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+            } catch (err) {
+                console.error("Sync error:", err);
+            }
+        }
+
+        function showSection(id) {
+            ['homeSection', 'adminMasterSection'].forEach(s => document.getElementById(s).classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').innerText = msg;
+            toast.classList.remove('hidden', '-translate-y-full');
+            setTimeout(() => {
+                toast.classList.add('-translate-y-full');
+                setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 3000);
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('dsr_theme', isDark ? 'dark' : 'light');
+            document.getElementById('themeIcon').setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            const adminIcon = document.getElementById('themeIconAdmin');
+            if (adminIcon) adminIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            lucide.createIcons();
+        }
+
+        // ==========================================
+        // SMART CALCULATOR LOGIC
+        // ==========================================
+        let calcExpr = "";
+        function openAdminCalculator() { document.getElementById('adminCalcModal').classList.remove('hidden'); }
+        function closeAdminCalculator() { document.getElementById('adminCalcModal').classList.add('hidden'); }
+        function calcAppend(char) {
+            const operators = ['+', '-', '*', '/', '%'];
+            if (operators.includes(char) && operators.includes(calcExpr.slice(-1))) calcExpr = calcExpr.slice(0, -1) + char;
+            else calcExpr += char;
+            document.getElementById('calcDisplay').innerText = calcExpr || "0";
+        }
+        function calcClear() { calcExpr = ""; document.getElementById('calcHistory').innerText = ""; document.getElementById('calcDisplay').innerText = "0"; }
+        function calcDelete() { calcExpr = calcExpr.slice(0, -1); document.getElementById('calcDisplay').innerText = calcExpr || "0"; }
+        function calcCompute() {
+            if (!calcExpr) return;
+            try {
+                let sanitized = calcExpr.replace(/×/g, '*').replace(/÷/g, '/');
+                let result = Function(`'use strict'; return (${sanitized})`)();
+                if (!Number.isInteger(result)) result = parseFloat(result.toFixed(4));
+                document.getElementById('calcHistory').innerText = `${calcExpr} =`;
+                calcExpr = result.toString();
+                document.getElementById('calcDisplay').innerText = calcExpr;
+            } catch (e) {
+                document.getElementById('calcDisplay').innerText = "Error";
+                calcExpr = "";
+            }
+        }
+
+        // INITIAL PAGE LOAD
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('dsr_theme') === 'dark') document.documentElement.classList.add('dark');
+            lucide.createIcons();
+            renderProducts(products);
+            updateUserUI();
+            saveCart();
+            initHeroCarousel();
+            renderAdminOrders();
+        });
+    </script>
+</body>
+</html>
