@@ -118,7 +118,7 @@
                 </div>
 
                 <!-- LIVE SEARCH BAR -->
-                <div class="flex-1 max-w-md mx-6 relative hidden sm:block">
+                <div class="flex-1 max-w-md mx-2 sm:mx-6 relative block">
                     <div class="relative flex items-center">
                         <input type="text" id="searchInput" oninput="handleSearchDebounced()" placeholder="Search clothes, brands..." 
                             class="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 dark:text-white border border-transparent rounded-md text-sm focus:bg-white dark:focus:bg-gray-600 focus:border-rose-500 focus:outline-none transition">
@@ -204,11 +204,9 @@
         </div>
         <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-16"></div>
 
-        <!-- FOOTER WITH 3-TAP SECRET ADMIN TRIGGER -->
+        <!-- FOOTER -->
         <footer class="mt-20 py-8 border-t dark:border-gray-800 text-center text-xs text-gray-400">
-            <p id="secretAdminFooterTrigger" onclick="handleSecretFooterTap()" class="cursor-pointer select-none hover:text-gray-600 dark:hover:text-gray-300">
-                © 2026 DSR Brand. All Rights Reserved. (Tap here 3 times or press <strong>Ctrl+Shift+A</strong> for Admin)
-            </p>
+            <p>© 2026 DSR Brand. All Rights Reserved.</p>
         </footer>
     </main>
 
@@ -615,7 +613,7 @@
     <script>
         const MERCHANT_UPI_ID = "smittiwari38-1@okicici"; 
         const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzhG-YFETjLKIvDsNC8gq5AJKsV1XT1xDv_kMNe_mR437mrnv1qdGYyUE-m7JDxAHzD/exec";
-        const ADMIN_SECRET_PIN = "admin123";
+        const ADMIN_SECRET_PIN = "PARANPUR";
 
         let products = generateCatalog();
         let registeredUsers = JSON.parse(localStorage.getItem('dsr_registered_users')) || [];
@@ -1816,8 +1814,25 @@
             }
         }
 
+        // FLASH SALE COUNTDOWN — starts fresh whenever the page is opened
+        function startFlashSaleTimer() {
+            const timerEl = document.getElementById('flashTimer');
+            if (!timerEl) return;
+            let remaining = 2 * 60 * 60 + 45 * 60 + 18;
+            const tick = () => {
+                const h = String(Math.floor(remaining / 3600)).padStart(2, '0');
+                const m = String(Math.floor((remaining % 3600) / 60)).padStart(2, '0');
+                const sec = String(remaining % 60).padStart(2, '0');
+                timerEl.textContent = `${h}:${m}:${sec}`;
+                if (remaining > 0) remaining--;
+            };
+            tick();
+            setInterval(tick, 1000);
+        }
+
         // INITIAL PAGE LOAD
         document.addEventListener('DOMContentLoaded', () => {
+            startFlashSaleTimer();
             if (localStorage.getItem('dsr_theme') === 'dark') document.documentElement.classList.add('dark');
             lucide.createIcons();
             renderProducts(products);
