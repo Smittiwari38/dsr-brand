@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -16,6 +16,7 @@
     </script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         .glass-calc {
             background: rgba(255, 255, 255, 0.95);
@@ -88,7 +89,7 @@
                 <i data-lucide="lock" class="w-6 h-6"></i>
             </div>
             <h3 class="text-base font-black text-gray-900 dark:text-white">Admin Security Access</h3>
-            <p class="text-xs text-gray-400 mt-1 mb-4">Enter Master Security PIN (admin123)</p>
+            <p class="text-xs text-gray-400 mt-1 mb-4">Enter Master Security PIN</p>
             
             <form onsubmit="verifyAdminPinModal(event)" class="space-y-3">
                 <input type="password" id="adminPinInputModal" placeholder="••••••••" required class="w-full text-center text-lg tracking-widest font-black p-2.5 border dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500">
@@ -118,7 +119,7 @@
                 </div>
 
                 <!-- LIVE SEARCH BAR -->
-                <div class="flex-1 max-w-md mx-2 sm:mx-6 relative block">
+                <div class="flex-1 max-w-md mx-6 relative hidden sm:block">
                     <div class="relative flex items-center">
                         <input type="text" id="searchInput" oninput="handleSearchDebounced()" placeholder="Search clothes, brands..." 
                             class="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 dark:text-white border border-transparent rounded-md text-sm focus:bg-white dark:focus:bg-gray-600 focus:border-rose-500 focus:outline-none transition">
@@ -204,9 +205,11 @@
         </div>
         <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-16"></div>
 
-        <!-- FOOTER -->
+        <!-- FOOTER WITH 3-TAP SECRET ADMIN TRIGGER -->
         <footer class="mt-20 py-8 border-t dark:border-gray-800 text-center text-xs text-gray-400">
-            <p>© 2026 DSR Brand. All Rights Reserved.</p>
+            <p id="secretAdminFooterTrigger" onclick="handleSecretFooterTap()" class="cursor-pointer select-none hover:text-gray-600 dark:hover:text-gray-300">
+                © 2026 DSR Brand. All Rights Reserved.
+            </p>
         </footer>
     </main>
 
@@ -592,11 +595,16 @@
                     <label class="w-full py-3.5 px-4 bg-indigo-50 dark:bg-gray-700 text-indigo-700 dark:text-indigo-300 font-bold text-xs rounded-xl border-2 border-dashed border-indigo-300 dark:border-indigo-600 cursor-pointer flex items-center justify-center gap-2 hover:bg-indigo-100 transition shadow-xs">
                         <i data-lucide="scan-line" class="w-5 h-5 text-indigo-600 dark:text-indigo-400 animate-pulse"></i>
                         <span id="uploadButtonText">AI Scan / Upload Payment Screenshot</span>
-                        <input type="file" id="paymentScreenshotInput" accept="image/*" onchange="handleAiCompressAndAnalyze(event)" class="hidden">
+                        <input type="file" id="paymentScreenshotInput" accept="image/png,image/jpeg,image/webp" onchange="handleAiCompressAndAnalyze(event)" class="hidden">
                     </label>
 
+                    <div class="w-full mt-3">
+                        <label for="manualTransactionId" class="block text-left text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">Transaction ID / UTR (optional)</label>
+                        <input id="manualTransactionId" type="text" inputmode="text" autocomplete="off" placeholder="Enter Transaction ID / UTR if available" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+
                     <div id="aiAnalysisBox" class="hidden mt-3 p-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 rounded-xl text-left text-xs text-emerald-800 dark:text-emerald-300 space-y-1 w-full">
-                        <div class="font-bold flex items-center gap-1"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i> AI Receipt Analysis:</div>
+                        <div class="font-bold flex items-center gap-1"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Payment Proof Check:</div>
                         <div id="aiReportText" class="font-mono text-[11px]">Processing...</div>
                     </div>
                 </div>
@@ -1114,6 +1122,732 @@
                 });
             }
 
+
+            // STATIC DEMO CATALOGUE — existing 300+ products above are preserved.
+            // Demo pricing: source/base price + 18% GST, then multiplied by 3.
+            const staticDemoCatalog = [
+                {
+                                "id": 4001,
+                                "name": "boAt BassHeads Wired Earphones (Demo)",
+                                "category": "electronics",
+                                "price": 1412,
+                                "image": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=700&q=85",
+                                "rating": "4.3",
+                                "description": "Wired in-ear earphones with mic and everyday bass response.",
+                                "sourcePrice": 399,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4002,
+                                "name": "Portronics Sound Drum Mini Speaker (Demo)",
+                                "category": "electronics",
+                                "price": 2474,
+                                "image": "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=700&q=85",
+                                "rating": "4.4",
+                                "description": "Compact portable Bluetooth speaker for desk and travel.",
+                                "sourcePrice": 699,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4003,
+                                "name": "Ambrane 10000mAh Power Bank (Demo)",
+                                "category": "electronics",
+                                "price": 3182,
+                                "image": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=700&q=85",
+                                "rating": "4.5",
+                                "description": "Portable power bank with dual charging ports.",
+                                "sourcePrice": 899,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4004,
+                                "name": "Zebronics Wireless Keyboard & Mouse (Demo)",
+                                "category": "electronics",
+                                "price": 3536,
+                                "image": "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=700&q=85",
+                                "rating": "4.6",
+                                "description": "Wireless keyboard and mouse combo for home and office.",
+                                "sourcePrice": 999,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4005,
+                                "name": "Portronics USB-C Fast Charger (Demo)",
+                                "category": "electronics",
+                                "price": 2120,
+                                "image": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=700&q=85",
+                                "rating": "4.7",
+                                "description": "Compact USB-C wall charger for compatible devices.",
+                                "sourcePrice": 599,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4006,
+                                "name": "Noise Smart Fitness Band (Demo)",
+                                "category": "electronics",
+                                "price": 4598,
+                                "image": "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=700&q=85",
+                                "rating": "4.8",
+                                "description": "Fitness band demo listing with activity and notification features.",
+                                "sourcePrice": 1299,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4007,
+                                "name": "TP-Link Wi-Fi Router (Demo)",
+                                "category": "electronics",
+                                "price": 5306,
+                                "image": "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=700&q=85",
+                                "rating": "4.9",
+                                "description": "Dual-band home Wi-Fi router for everyday connectivity.",
+                                "sourcePrice": 1499,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4008,
+                                "name": "Philips LED Bulb 12W (Demo)",
+                                "category": "electronics",
+                                "price": 881,
+                                "image": "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=700&q=85",
+                                "rating": "4.1",
+                                "description": "Energy-efficient LED bulb for home lighting.",
+                                "sourcePrice": 249,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4009,
+                                "name": "Wipro Smart LED Bulb (Demo)",
+                                "category": "electronics",
+                                "price": 2474,
+                                "image": "https://images.unsplash.com/photo-1503944583220-79d8926ad5e2?w=700&q=85",
+                                "rating": "4.2",
+                                "description": "Connected smart bulb demo listing with app control.",
+                                "sourcePrice": 699,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4010,
+                                "name": "Logitech Compact Wireless Mouse (Demo)",
+                                "category": "electronics",
+                                "price": 2828,
+                                "image": "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=700&q=85",
+                                "rating": "4.3",
+                                "description": "Ergonomic wireless mouse for laptop and desktop use.",
+                                "sourcePrice": 799,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4011,
+                                "name": "Milton Stainless Steel Water Bottle (Demo)",
+                                "category": "home",
+                                "price": 1766,
+                                "image": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=700&q=85",
+                                "rating": "4.5",
+                                "description": "Insulated stainless-steel bottle for daily use.",
+                                "sourcePrice": 499,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4012,
+                                "name": "Cello Plastic Storage Container Set (Demo)",
+                                "category": "home",
+                                "price": 2474,
+                                "image": "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=700&q=85",
+                                "rating": "4.6",
+                                "description": "Stackable kitchen storage containers for dry goods.",
+                                "sourcePrice": 699,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4013,
+                                "name": "Prestige Non-Stick Fry Pan (Demo)",
+                                "category": "home",
+                                "price": 3182,
+                                "image": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=700&q=85",
+                                "rating": "4.7",
+                                "description": "Everyday non-stick fry pan for home cooking.",
+                                "sourcePrice": 899,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4014,
+                                "name": "Borosil Glass Lunch Box (Demo)",
+                                "category": "home",
+                                "price": 2828,
+                                "image": "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=700&q=85",
+                                "rating": "4.8",
+                                "description": "Reusable glass lunch box with secure lid.",
+                                "sourcePrice": 799,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4015,
+                                "name": "Pigeon Electric Kettle (Demo)",
+                                "category": "home",
+                                "price": 4244,
+                                "image": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=700&q=85",
+                                "rating": "4.9",
+                                "description": "Compact electric kettle for tea, coffee and hot water.",
+                                "sourcePrice": 1199,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4016,
+                                "name": "Wakefit Memory Foam Cushion (Demo)",
+                                "category": "home",
+                                "price": 2120,
+                                "image": "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=700&q=85",
+                                "rating": "4.1",
+                                "description": "Soft support cushion for chair and sofa use.",
+                                "sourcePrice": 599,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4017,
+                                "name": "Solimo Cotton Bedsheet (Demo)",
+                                "category": "home",
+                                "price": 3182,
+                                "image": "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=700&q=85",
+                                "rating": "4.2",
+                                "description": "Cotton bedsheet demo listing in an everyday size.",
+                                "sourcePrice": 899,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4018,
+                                "name": "Asian Paints Wall Decor Frame (Demo)",
+                                "category": "home",
+                                "price": 1589,
+                                "image": "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=700&q=85",
+                                "rating": "4.3",
+                                "description": "Decorative wall frame for living spaces.",
+                                "sourcePrice": 449,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4019,
+                                "name": "Nilkamal Plastic Storage Basket (Demo)",
+                                "category": "home",
+                                "price": 1412,
+                                "image": "https://images.unsplash.com/photo-1503944583220-79d8926ad5e2?w=700&q=85",
+                                "rating": "4.4",
+                                "description": "Lightweight multipurpose household storage basket.",
+                                "sourcePrice": 399,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4020,
+                                "name": "Havells Table Fan (Demo)",
+                                "category": "home",
+                                "price": 5660,
+                                "image": "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=700&q=85",
+                                "rating": "4.5",
+                                "description": "Compact table fan demo listing for personal cooling.",
+                                "sourcePrice": 1599,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4021,
+                                "name": "Himalaya Neem Face Wash (Demo)",
+                                "category": "beauty",
+                                "price": 704,
+                                "image": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=700&q=85",
+                                "rating": "4.7",
+                                "description": "Gentle daily face cleanser demo listing.",
+                                "sourcePrice": 199,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4022,
+                                "name": "Mamaearth Vitamin C Face Serum (Demo)",
+                                "category": "beauty",
+                                "price": 2120,
+                                "image": "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=700&q=85",
+                                "rating": "4.8",
+                                "description": "Skincare serum demo listing for daily routine.",
+                                "sourcePrice": 599,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4023,
+                                "name": "Lakme Compact Powder (Demo)",
+                                "category": "beauty",
+                                "price": 1235,
+                                "image": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=700&q=85",
+                                "rating": "4.9",
+                                "description": "Compact face powder demo listing.",
+                                "sourcePrice": 349,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4024,
+                                "name": "Maybelline Kajal (Demo)",
+                                "category": "beauty",
+                                "price": 704,
+                                "image": "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=700&q=85",
+                                "rating": "4.1",
+                                "description": "Everyday kajal demo listing.",
+                                "sourcePrice": 199,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4025,
+                                "name": "Nivea Body Lotion (Demo)",
+                                "category": "beauty",
+                                "price": 1058,
+                                "image": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=700&q=85",
+                                "rating": "4.2",
+                                "description": "Moisturising body lotion demo listing.",
+                                "sourcePrice": 299,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4026,
+                                "name": "Dove Hair Conditioner (Demo)",
+                                "category": "beauty",
+                                "price": 881,
+                                "image": "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=700&q=85",
+                                "rating": "4.3",
+                                "description": "Daily hair-care conditioner demo listing.",
+                                "sourcePrice": 249,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4027,
+                                "name": "Parachute Coconut Hair Oil (Demo)",
+                                "category": "beauty",
+                                "price": 634,
+                                "image": "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=700&q=85",
+                                "rating": "4.4",
+                                "description": "Coconut hair oil demo listing for routine hair care.",
+                                "sourcePrice": 179,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4028,
+                                "name": "Plum Green Tea Toner (Demo)",
+                                "category": "beauty",
+                                "price": 1412,
+                                "image": "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=700&q=85",
+                                "rating": "4.5",
+                                "description": "Facial toner demo listing.",
+                                "sourcePrice": 399,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4029,
+                                "name": "Nykaa Makeup Brush Set (Demo)",
+                                "category": "beauty",
+                                "price": 2474,
+                                "image": "https://images.unsplash.com/photo-1503944583220-79d8926ad5e2?w=700&q=85",
+                                "rating": "4.6",
+                                "description": "Makeup brush set demo listing.",
+                                "sourcePrice": 699,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4030,
+                                "name": "Vaseline Body Moisturizer (Demo)",
+                                "category": "beauty",
+                                "price": 1058,
+                                "image": "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=700&q=85",
+                                "rating": "4.7",
+                                "description": "Daily body moisturiser demo listing.",
+                                "sourcePrice": 299,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4031,
+                                "name": "Tata Salt 1kg (Demo)",
+                                "category": "grocery",
+                                "price": 106,
+                                "image": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=700&q=85",
+                                "rating": "4.8",
+                                "description": "Everyday iodised salt demo grocery listing.",
+                                "sourcePrice": 30,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4032,
+                                "name": "Aashirvaad Atta 5kg (Demo)",
+                                "category": "grocery",
+                                "price": 1058,
+                                "image": "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=700&q=85",
+                                "rating": "4.9",
+                                "description": "Whole wheat flour demo grocery listing.",
+                                "sourcePrice": 299,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4033,
+                                "name": "Tata Tea Premium 500g (Demo)",
+                                "category": "grocery",
+                                "price": 1058,
+                                "image": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=700&q=85",
+                                "rating": "4.1",
+                                "description": "Tea blend demo grocery listing.",
+                                "sourcePrice": 299,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4034,
+                                "name": "Fortune Sunflower Oil 1L (Demo)",
+                                "category": "grocery",
+                                "price": 527,
+                                "image": "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=700&q=85",
+                                "rating": "4.2",
+                                "description": "Edible cooking oil demo grocery listing.",
+                                "sourcePrice": 149,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4035,
+                                "name": "Amul Taaza Milk 1L (Demo)",
+                                "category": "grocery",
+                                "price": 230,
+                                "image": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=700&q=85",
+                                "rating": "4.3",
+                                "description": "Milk product demo grocery listing.",
+                                "sourcePrice": 65,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4036,
+                                "name": "Britannia Good Day Biscuits (Demo)",
+                                "category": "grocery",
+                                "price": 177,
+                                "image": "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=700&q=85",
+                                "rating": "4.4",
+                                "description": "Packaged biscuit demo grocery listing.",
+                                "sourcePrice": 50,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4037,
+                                "name": "MDH Chana Masala (Demo)",
+                                "category": "grocery",
+                                "price": 301,
+                                "image": "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=700&q=85",
+                                "rating": "4.5",
+                                "description": "Spice blend demo grocery listing.",
+                                "sourcePrice": 85,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4038,
+                                "name": "Kissan Tomato Ketchup (Demo)",
+                                "category": "grocery",
+                                "price": 527,
+                                "image": "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=700&q=85",
+                                "rating": "4.6",
+                                "description": "Tomato ketchup demo grocery listing.",
+                                "sourcePrice": 149,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4039,
+                                "name": "India Gate Basmati Rice 5kg (Demo)",
+                                "category": "grocery",
+                                "price": 2474,
+                                "image": "https://images.unsplash.com/photo-1503944583220-79d8926ad5e2?w=700&q=85",
+                                "rating": "4.7",
+                                "description": "Basmati rice demo grocery listing.",
+                                "sourcePrice": 699,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4040,
+                                "name": "Thums Up Soft Drink (Demo)",
+                                "category": "grocery",
+                                "price": 159,
+                                "image": "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=700&q=85",
+                                "rating": "4.8",
+                                "description": "Beverage demo grocery listing.",
+                                "sourcePrice": 45,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4041,
+                                "name": "Nivia Storm Football (Demo)",
+                                "category": "sports",
+                                "price": 2828,
+                                "image": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=700&q=85",
+                                "rating": "4.7",
+                                "description": "Durable football demo listing for recreational play.",
+                                "sourcePrice": 799,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4042,
+                                "name": "Cosco Tennis Ball Pack (Demo)",
+                                "category": "sports",
+                                "price": 1058,
+                                "image": "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=700&q=85",
+                                "rating": "4.8",
+                                "description": "Tennis ball pack demo listing.",
+                                "sourcePrice": 299,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4043,
+                                "name": "Yonex Badminton Racket (Demo)",
+                                "category": "sports",
+                                "price": 5306,
+                                "image": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=700&q=85",
+                                "rating": "4.9",
+                                "description": "Badminton racket demo listing for casual players.",
+                                "sourcePrice": 1499,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4044,
+                                "name": "Strauss Yoga Mat (Demo)",
+                                "category": "sports",
+                                "price": 2120,
+                                "image": "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=700&q=85",
+                                "rating": "4.1",
+                                "description": "Non-slip exercise and yoga mat demo listing.",
+                                "sourcePrice": 599,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4045,
+                                "name": "Decathlon Skipping Rope (Demo)",
+                                "category": "sports",
+                                "price": 1412,
+                                "image": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=700&q=85",
+                                "rating": "4.2",
+                                "description": "Adjustable skipping rope demo listing.",
+                                "sourcePrice": 399,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4046,
+                                "name": "Nivia Cricket Bat (Demo)",
+                                "category": "sports",
+                                "price": 4598,
+                                "image": "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=700&q=85",
+                                "rating": "4.3",
+                                "description": "Cricket bat demo listing for practice and recreation.",
+                                "sourcePrice": 1299,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4047,
+                                "name": "SG Cricket Gloves (Demo)",
+                                "category": "sports",
+                                "price": 3182,
+                                "image": "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=700&q=85",
+                                "rating": "4.4",
+                                "description": "Cricket batting gloves demo listing.",
+                                "sourcePrice": 899,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4048,
+                                "name": "Boldfit Gym Gloves (Demo)",
+                                "category": "sports",
+                                "price": 1766,
+                                "image": "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=700&q=85",
+                                "rating": "4.5",
+                                "description": "Workout gloves demo listing.",
+                                "sourcePrice": 499,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4049,
+                                "name": "Cosco Basketball (Demo)",
+                                "category": "sports",
+                                "price": 3182,
+                                "image": "https://images.unsplash.com/photo-1503944583220-79d8926ad5e2?w=700&q=85",
+                                "rating": "4.6",
+                                "description": "Basketball demo listing for recreational play.",
+                                "sourcePrice": 899,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4050,
+                                "name": "Strauss Resistance Bands (Demo)",
+                                "category": "sports",
+                                "price": 2474,
+                                "image": "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=700&q=85",
+                                "rating": "4.7",
+                                "description": "Resistance band set demo listing for home workouts.",
+                                "sourcePrice": 699,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4051,
+                                "name": "Men's Cotton Casual Shirt (Demo)",
+                                "category": "fashion",
+                                "price": 2474,
+                                "image": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=700&q=85",
+                                "rating": "4.8",
+                                "description": "Breathable cotton casual shirt demo listing.",
+                                "sourcePrice": 699,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4052,
+                                "name": "Men's Slim Fit Jeans (Demo)",
+                                "category": "fashion",
+                                "price": 3536,
+                                "image": "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=700&q=85",
+                                "rating": "4.9",
+                                "description": "Everyday denim jeans demo listing.",
+                                "sourcePrice": 999,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4053,
+                                "name": "Women's Printed Kurti (Demo)",
+                                "category": "fashion",
+                                "price": 2828,
+                                "image": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=700&q=85",
+                                "rating": "4.1",
+                                "description": "Printed everyday kurti demo listing.",
+                                "sourcePrice": 799,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4054,
+                                "name": "Women's Cotton Palazzo (Demo)",
+                                "category": "fashion",
+                                "price": 2474,
+                                "image": "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=700&q=85",
+                                "rating": "4.2",
+                                "description": "Comfortable cotton palazzo demo listing.",
+                                "sourcePrice": 699,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4055,
+                                "name": "Women's Embroidered Dupatta (Demo)",
+                                "category": "fashion",
+                                "price": 1766,
+                                "image": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=700&q=85",
+                                "rating": "4.3",
+                                "description": "Embroidered dupatta demo listing.",
+                                "sourcePrice": 499,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4056,
+                                "name": "Men's Polo T-Shirt (Demo)",
+                                "category": "fashion",
+                                "price": 2120,
+                                "image": "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=700&q=85",
+                                "rating": "4.4",
+                                "description": "Classic polo T-shirt demo listing.",
+                                "sourcePrice": 599,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4057,
+                                "name": "Women's Handbag (Demo)",
+                                "category": "fashion",
+                                "price": 3182,
+                                "image": "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=700&q=85",
+                                "rating": "4.5",
+                                "description": "Structured everyday handbag demo listing.",
+                                "sourcePrice": 899,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4058,
+                                "name": "Men's Casual Sneakers (Demo)",
+                                "category": "fashion",
+                                "price": 4598,
+                                "image": "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=700&q=85",
+                                "rating": "4.6",
+                                "description": "Casual sneakers demo listing.",
+                                "sourcePrice": 1299,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4059,
+                                "name": "Women's Flat Sandals (Demo)",
+                                "category": "fashion",
+                                "price": 2474,
+                                "image": "https://images.unsplash.com/photo-1503944583220-79d8926ad5e2?w=700&q=85",
+                                "rating": "4.7",
+                                "description": "Everyday flat sandals demo listing.",
+                                "sourcePrice": 699,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                },
+                {
+                                "id": 4060,
+                                "name": "Unisex Cotton Cap (Demo)",
+                                "category": "fashion",
+                                "price": 1058,
+                                "image": "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=700&q=85",
+                                "rating": "4.8",
+                                "description": "Adjustable cotton cap demo listing.",
+                                "sourcePrice": 299,
+                                "gstRate": 18,
+                                "pricingNote": "Demo formula: base price + 18% GST, then ×3"
+                }
+];
+            staticDemoCatalog.forEach(p => list.push(p));
             return list;
         }
 
@@ -1123,6 +1857,56 @@
         function renderProducts(items) {
             const grid = document.getElementById('productGrid');
             const fallbackImg = "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500&q=80";
+
+            // When search returns no exact matches, keep the page useful by showing
+            // related products instead of leaving a blank collection area.
+            if (!items.length) {
+                const query = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+                const synonymMap = {
+                    shoes: ['shoe','shoes','sneaker','sneakers','footwear','sandals','slipper','slippers'],
+                    fashion: ['shirt','shirts','tshirt','t-shirt','jeans','dress','kurta','jacket','hoodie','cap','fashion','clothing','clothes','wear','sandal','sandals'],
+                    electronics: ['phone','mobile','smartphone','laptop','earphone','earbuds','headphone','watch','charger','speaker','camera','electronic','electronics'],
+                    home: ['home','kitchen','cookware','bottle','storage','lamp','pillow','bedsheet','furniture','cleaning'],
+                    beauty: ['beauty','makeup','lipstick','skincare','cream','shampoo','perfume','cosmetic'],
+                    grocery: ['grocery','rice','atta','flour','dal','spice','snack','food','oil','tea','coffee'],
+                    sports: ['sport','sports','cricket','football','badminton','fitness','gym','ball','bat']
+                };
+                const wantedTerms = Object.keys(synonymMap).filter(key =>
+                    synonymMap[key].some(term => query.includes(term))
+                );
+                const related = products.filter(p => {
+                    const text = `${p.name} ${p.category} ${p.description || ''}`.toLowerCase();
+                    return wantedTerms.some(key => synonymMap[key].some(term => text.includes(term)));
+                }).slice(0, 6);
+                const fallbackRelated = related.length ? related : products.slice(0, 6);
+
+                grid.innerHTML = `
+                    <div class="col-span-full py-8 px-4 text-center">
+                        <div class="max-w-3xl mx-auto">
+                            <div class="text-3xl mb-2">🔎</div>
+                            <h3 class="text-lg font-extrabold text-gray-900 dark:text-white">
+                                We couldn't find “${query.replace(/</g, '&lt;').replace(/>/g, '&gt;')}”
+                            </h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                Try these related products instead:
+                            </p>
+                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mt-6 text-left">
+                                ${fallbackRelated.map(item => `
+                                    <button type="button" onclick="openProductModal(${item.id})" class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition text-left">
+                                        <img src="${item.image}" alt="${item.name}" loading="lazy" onerror="this.onerror=null;this.src='${fallbackImg}';" class="w-full h-28 object-cover">
+                                        <div class="p-2">
+                                            <div class="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2">${item.name}</div>
+                                            <div class="text-sm font-extrabold text-gray-900 dark:text-white mt-1">₹${item.price}</div>
+                                        </div>
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
 
             grid.innerHTML = items.map(item => {
                 const inCart = cart.find(c => c.id === item.id);
@@ -1138,7 +1922,6 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm line-clamp-1">${item.name}</h3>
-                        <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">${item.description || 'Quality product for everyday use.'}</p>
                         <span class="text-xs font-bold text-emerald-600 mt-1 block">${item.rating} ★</span>
                     </div>
                     <div class="mt-4 flex items-center justify-between">
@@ -1166,53 +1949,10 @@
             lucide.createIcons();
         }
 
-        // FREE DEMO PRODUCT FEED
-        // Keeps the original 300 products untouched and appends a larger online catalog.
-        // Pricing for this college-demo feed: base price -> 18% demo GST -> x3 markup.
-        async function loadExtendedCatalog() {
-            try {
-                const response = await fetch('https://dummyjson.com/products?limit=0');
-                if (!response.ok) throw new Error('Product feed unavailable');
-                const data = await response.json();
-                const DEMO_USD_TO_INR = 85;
-                const DEMO_GST = 0.18;
-                const DEMO_MARKUP = 3;
-
-                const extraProducts = (data.products || []).map((p, index) => {
-                    const baseInr = Number(p.price || 0) * DEMO_USD_TO_INR;
-                    const finalPrice = Math.max(1, Math.round(baseInr * (1 + DEMO_GST) * DEMO_MARKUP));
-                    return {
-                        id: 100000 + Number(p.id || index + 1),
-                        name: p.title || 'Product',
-                        category: 'online',
-                        price: finalPrice,
-                        image: p.thumbnail || (p.images && p.images[0]) || '',
-                        rating: Number(p.rating || 4).toFixed(1),
-                        description: p.description || 'Quality product for everyday use.',
-                        stock: Number(p.stock || 0),
-                        sourceBasePrice: Number(p.price || 0)
-                    };
-                });
-
-                // Avoid duplicate IDs if the feed changes. Original 300 stay first.
-                products = products.filter(p => p.id < 100000).concat(extraProducts);
-                refreshCurrentCatalogView();
-
-                const countEl = document.getElementById('admTotCount');
-                if (countEl) countEl.innerText = products.length;
-            } catch (error) {
-                console.warn('Extended product feed could not be loaded:', error);
-            }
-        }
-
         function refreshCurrentCatalogView() {
             const query = document.getElementById('searchInput')?.value.toLowerCase();
             if (query) {
-                const filtered = products.filter(p =>
-                    p.name.toLowerCase().includes(query) ||
-                    p.category.toLowerCase().includes(query) ||
-                    (p.description || '').toLowerCase().includes(query)
-                );
+                const filtered = products.filter(p => p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query));
                 renderProducts(filtered);
             } else if (currentCategory === 'all') {
                 renderProducts(products);
@@ -1366,10 +2106,13 @@
 
             // Reset AI view
             aiAnalyzedReport = "";
+            paymentProofData = null;
             document.getElementById('aiAnalysisBox').classList.add('hidden');
             document.getElementById('aiReportText').innerText = "";
             const fileInput = document.getElementById('paymentScreenshotInput');
             if (fileInput) fileInput.value = "";
+            const txnInput = document.getElementById('manualTransactionId');
+            if (txnInput) txnInput.value = "";
 
             document.getElementById('paymentModal').classList.remove('hidden');
             lucide.createIcons();
@@ -1379,58 +2122,94 @@
             document.getElementById('paymentModal').classList.add('hidden');
         }
 
-        function handleAiCompressAndAnalyze(event) {
-            const file = event.target.files[0];
+        async function handleAiCompressAndAnalyze(event) {
+            const file = event.target.files && event.target.files[0];
             if (!file) return;
 
-            document.getElementById('aiReportText').innerText = "🤖 AI is scanning receipt (~20KB compressed)...";
-            document.getElementById('aiAnalysisBox').classList.remove('hidden');
+            const reportBox = document.getElementById('aiAnalysisBox');
+            const reportText = document.getElementById('aiReportText');
+            reportBox.classList.remove('hidden');
+            reportText.innerText = "📸 Payment screenshot ready. No automatic UTR/OCR checking.";
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 400;
-                    const MAX_HEIGHT = 400;
-                    let width = img.width;
-                    let height = img.height;
+            if (!file.type || !file.type.startsWith('image/')) {
+                reportText.innerText = "❌ Please upload an image file.";
+                event.target.value = "";
+                paymentProofData = null;
+                aiAnalyzedReport = "";
+                return;
+            }
+            if (file.size > 10 * 1024 * 1024) {
+                reportText.innerText = "❌ Image 10MB se chhoti honi chahiye.";
+                event.target.value = "";
+                paymentProofData = null;
+                aiAnalyzedReport = "";
+                return;
+            }
 
-                    if (width > height) {
-                        if (width > MAX_WIDTH) {
-                            height *= MAX_WIDTH / width;
-                            width = MAX_WIDTH;
-                        }
-                    } else {
-                        if (height > MAX_HEIGHT) {
-                            width *= MAX_HEIGHT / height;
-                            height = MAX_HEIGHT;
-                        }
-                    }
+            try {
+                const imageUrl = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
 
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
+                const img = await new Promise((resolve, reject) => {
+                    const image = new Image();
+                    image.onload = () => resolve(image);
+                    image.onerror = reject;
+                    image.src = imageUrl;
+                });
 
-                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.4);
-                    const approxKb = Math.round((compressedDataUrl.length * 3) / 4 / 1024);
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 1400, MAX_HEIGHT = 1400;
+                let width = img.naturalWidth || img.width;
+                let height = img.naturalHeight || img.height;
+                if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+                    const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+                    width = Math.max(1, Math.round(width * ratio));
+                    height = Math.max(1, Math.round(height * ratio));
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+                const approxKb = Math.round((compressedDataUrl.length * 3) / 4 / 1024);
 
-                    const randomTxn = "TXN" + Math.floor(100000000 + Math.random() * 900000000);
-                    aiAnalyzedReport = `✓ AI Verified: Paid ₹${activePayAmount}\n• Txn ID: #${randomTxn}\n• Optimized (~${approxKb}KB)`;
-                    
-                    document.getElementById('aiReportText').innerText = aiAnalyzedReport;
+                paymentProofData = {
+                    transactionId: '',
+                    detectedAmount: Number(activePayAmount),
+                    proofStatus: 'PENDING_ADMIN_VERIFICATION',
+                    proofImage: compressedDataUrl,
+                    compressedKb: approxKb
                 };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
+                aiAnalyzedReport = `Payment screenshot uploaded — Admin verification pending\n• Amount: ₹${activePayAmount}\n• Screenshot: ~${approxKb}KB`;
+                reportText.innerText = aiAnalyzedReport;
+            } catch (err) {
+                console.error('Payment screenshot processing error:', err);
+                paymentProofData = null;
+                aiAnalyzedReport = '';
+                reportText.innerText = "❌ Screenshot load nahi ho saka. Dobara upload karein.";
+            }
         }
 
         function submitPaymentProof() {
-            if (!aiAnalyzedReport) {
-                alert("Please scan/upload your payment screenshot first!");
+            if (!paymentProofData || !paymentProofData.proofImage) {
+                alert("Pehle payment screenshot upload karein.");
                 return;
             }
+
+            const txnInput = document.getElementById('manualTransactionId');
+            const manualTxn = txnInput ? txnInput.value.trim().replace(/[^A-Za-z0-9\-]/g, '').toUpperCase() : '';
+            paymentProofData.transactionId = manualTxn;
+            const duplicateTxn = manualTxn && Array.isArray(adminOrders) && adminOrders.some(o => o.transactionId && String(o.transactionId).toUpperCase() === manualTxn);
+            if (duplicateTxn) {
+                alert("This Transaction/UTR ID has already been submitted.");
+                return;
+            }
+
+            aiAnalyzedReport = `Payment screenshot submitted — Admin verification pending\n• Amount: ₹${activePayAmount}${manualTxn ? `\n• Transaction/UTR: ${manualTxn}` : ''}`;
 
             const orderId = "DSR-" + Math.floor(100000 + Math.random() * 900000);
             const totalItems = cart.reduce((s, i) => s + (i.quantity || 1), 0);
@@ -1445,6 +2224,10 @@
                 itemsCount: totalItems,
                 totalAmount: activePayAmount,
                 aiReport: aiAnalyzedReport,
+                transactionId: paymentProofData.transactionId,
+                detectedPaymentAmount: paymentProofData.detectedAmount,
+                proofStatus: paymentProofData.proofStatus,
+                proofImage: paymentProofData.proofImage || '',
                 approvalStatus: "PENDING", 
                 orderStage: "PENDING", 
                 date: new Date().toLocaleString()
@@ -1712,11 +2495,13 @@
                     <td class="p-3 text-xs">
                         <div class="text-xs font-semibold text-gray-800 dark:text-gray-200 mb-1.5">${o.address || 'Address not provided'}</div>
                         <div class="p-2 bg-indigo-50 dark:bg-gray-700/60 rounded-xl font-mono text-[10px] text-indigo-900 dark:text-indigo-200 whitespace-pre-line border border-indigo-200 dark:border-indigo-800">
-                            ${o.aiReport || 'AI Verified Receipt'}
+                            <div class="font-bold">${o.aiReport || 'Payment proof pending review'}</div>
+                            ${o.transactionId ? `<div class="mt-1 text-[10px]">Txn/UTR: ${o.transactionId}</div>` : ''}
                         </div>
                     </td>
                     <td class="p-3">${statusBadge}</td>
                     <td class="p-3 text-xs space-y-1 text-center">
+                        ${o.proofImage ? `<button type="button" onclick="viewPaymentProof('${o.orderId}')" class="w-full py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg">View Proof</button>` : ''}
                         ${o.approvalStatus === 'PENDING' ? `
                             <button onclick="setOrderApproval('${o.orderId}', 'APPROVED')" class="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-2xs">Accept</button>
                             <button onclick="setOrderApproval('${o.orderId}', 'REJECTED')" class="w-full py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg shadow-2xs">Reject</button>
@@ -1725,6 +2510,15 @@
                 </tr>
                 `;
             }).join('');
+        }
+
+        function viewPaymentProof(orderId) {
+            const order = Array.isArray(adminOrders) ? adminOrders.find(o => o.orderId === orderId) : null;
+            if (!order || !order.proofImage) return alert('Payment proof image available nahi hai.');
+            const win = window.open('', '_blank', 'width=520,height=760');
+            if (!win) return alert('Popup blocked hai. Browser mein popups allow karein.');
+            win.document.write(`<!doctype html><html><head><title>Payment Proof - ${order.orderId}</title><style>body{font-family:Arial,sans-serif;margin:0;background:#111;color:#fff;text-align:center;padding:18px}img{max-width:100%;height:auto;border-radius:12px;background:#fff}p{font-weight:700}</style></head><body><p>Payment Proof — ${order.orderId}</p><img src="${order.proofImage}" alt="Payment proof"><p>Transaction/UTR: ${order.transactionId || 'N/A'}<br>Amount: ₹${order.totalAmount || 0}</p></body></html>`);
+            win.document.close();
         }
 
         function clearAdminOrders() {
@@ -1814,29 +2608,11 @@
             }
         }
 
-        // FLASH SALE COUNTDOWN — starts fresh whenever the page is opened
-        function startFlashSaleTimer() {
-            const timerEl = document.getElementById('flashTimer');
-            if (!timerEl) return;
-            let remaining = 2 * 60 * 60 + 45 * 60 + 18;
-            const tick = () => {
-                const h = String(Math.floor(remaining / 3600)).padStart(2, '0');
-                const m = String(Math.floor((remaining % 3600) / 60)).padStart(2, '0');
-                const sec = String(remaining % 60).padStart(2, '0');
-                timerEl.textContent = `${h}:${m}:${sec}`;
-                if (remaining > 0) remaining--;
-            };
-            tick();
-            setInterval(tick, 1000);
-        }
-
         // INITIAL PAGE LOAD
         document.addEventListener('DOMContentLoaded', () => {
-            startFlashSaleTimer();
             if (localStorage.getItem('dsr_theme') === 'dark') document.documentElement.classList.add('dark');
             lucide.createIcons();
             renderProducts(products);
-            loadExtendedCatalog();
             updateUserUI();
             saveCart();
             initHeroCarousel();
