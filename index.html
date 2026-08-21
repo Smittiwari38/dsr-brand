@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -102,7 +102,7 @@
     </div>
 
     <!-- MAIN NAVBAR -->
-    <header class="sticky top-0 z-40 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-100 dark:border-gray-700 transition-colors duration-300">
+    <header class="sticky top-0 z-40 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-100 dark:border-gray-700 transition-colors duration-300 relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
                 <div class="flex items-center space-x-8">
@@ -123,6 +123,15 @@
                     <div class="relative flex items-center">
                         <input type="text" id="searchInput" oninput="handleSearchDebounced()" placeholder="Search clothes, brands..." 
                             class="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 dark:text-white border border-transparent rounded-md text-sm focus:bg-white dark:focus:bg-gray-600 focus:border-rose-500 focus:outline-none transition">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 text-gray-400"></i>
+                    </div>
+                </div>
+
+                <!-- MOBILE SEARCH BAR: kept separate so it remains visible on phones -->
+                <div class="sm:hidden block w-full bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 px-4 py-3">
+                    <div class="relative flex items-center">
+                        <input type="text" id="mobileSearchInput" oninput="handleMobileSearchDebounced()" placeholder="Search clothes, brands..."
+                            class="w-full pl-10 pr-4 py-2.5 bg-gray-100 dark:bg-gray-700 dark:text-white border border-transparent rounded-md text-sm focus:bg-white dark:focus:bg-gray-600 focus:border-rose-500 focus:outline-none transition">
                         <i data-lucide="search" class="w-4 h-4 absolute left-3 text-gray-400"></i>
                     </div>
                 </div>
@@ -2380,12 +2389,36 @@
         function handleSearchDebounced() {
             clearTimeout(searchDebounceTimer);
             searchDebounceTimer = setTimeout(() => {
-                const query = document.getElementById('searchInput').value.toLowerCase();
+                const desktopInput = document.getElementById('searchInput');
+                const mobileInput = document.getElementById('mobileSearchInput');
+                const query = desktopInput.value.toLowerCase();
+                if (mobileInput) mobileInput.value = desktopInput.value;
                 if (!query) {
                     filterCategory(currentCategory);
                     return;
                 }
                 const filtered = products.filter(p => p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query));
+                renderProducts(filtered);
+            }, 180);
+        }
+
+        // Mobile search uses the same filtering logic and never removes the search box.
+        function handleMobileSearchDebounced() {
+            const mobileInput = document.getElementById('mobileSearchInput');
+            const desktopInput = document.getElementById('searchInput');
+            if (!mobileInput) return;
+            if (desktopInput) desktopInput.value = mobileInput.value;
+            clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(() => {
+                const query = mobileInput.value.trim().toLowerCase();
+                if (!query) {
+                    filterCategory(currentCategory);
+                    return;
+                }
+                const filtered = products.filter(p =>
+                    p.name.toLowerCase().includes(query) ||
+                    p.category.toLowerCase().includes(query)
+                );
                 renderProducts(filtered);
             }, 180);
         }
